@@ -2,6 +2,7 @@
 from typing import Optional, List, Dict, Tuple
 from datetime import datetime, timedelta
 import numpy as np
+from decimal import Decimal
 from src.models.bar import BarOHLCV
 from src.models.backtest import BacktestRecord
 from src.backtest.cost_model import CostModel
@@ -64,18 +65,18 @@ class WalkForwardBacktest:
     def _simulate_trade(self, sig, bar, position: float, portfolio: dict) -> BacktestRecord:
         entry_price = float(bar.close)
         # 简化: 假设下一根Bar平仓
-        exit_price = entry_price * (1.05 if sig.get("direction", "long") == "long" else 0.95)
-        pnl = (exit_price - entry_price) * position / entry_price
-        costs = self.cost_model.round_trip_cost(entry_price, position)
+        exit_price = round(entry_price * (1.05 if sig.get("direction", "long") == "long" else 0.95), 4)
+        pnl = round((exit_price - entry_price) * position / entry_price, 4)
+        costs = round(self.cost_model.round_trip_cost(entry_price, position), 4)
 
         return BacktestRecord(
             version_id="System_v0.1", record_id=self._record_counter,
             symbol=bar.symbol, entry_time=bar.timestamp,
             exit_time=bar.timestamp + timedelta(hours=1),
-            entry_price=entry_price, exit_price=exit_price,
-            pnl=round(pnl, 4), costs=round(costs, 4),
+            entry_price=Decimal(str(entry_price)), exit_price=Decimal(str(exit_price)),
+            pnl=Decimal(str(pnl)), costs=Decimal(str(costs)),
             setup_type=sig.get("setup_type", "H2"),
-            position_size=round(position, 4),
+            position_size=Decimal(str(round(position, 4))),
         )
 
     def get_summary(self) -> dict:
