@@ -1,0 +1,121 @@
+# SPAS 全局配置 — 对应设计文档中所有可调参数
+# 修改此文件后无需重启服务（配置中心热加载）
+
+timeframes:
+  daily: "1d"
+  60min: "60min"
+  15min: "15min"
+  5min: "5min"
+
+latency_budgets:
+  5min_signal_ms: 2000
+  15min_signal_ms: 5000
+  60min_signal_ms: 10000
+
+risk_constraints:
+  L1_daily_stop: -0.03
+  L2_weekly_stop: -0.08
+  L3_monthly_stop: -0.15
+  L4_max_drawdown: -0.20
+  L5_single_sector_pct: 0.20
+  L6_total_exposure_pct: 0.80
+
+kelly:
+  fraction: 0.25
+  min_rr_ratio: 1.0
+
+volatility_anchor:
+  normal_window: 20
+  current_window: 5
+  decay_exponent: 0.5
+  max_position_cap_at_high_vol: 0.05
+
+market_state:
+  ema_period: 20
+  trend_bar_ratio_bull: 0.6
+  trend_bar_ratio_bear: 0.4
+  adx_period: 14
+  adx_threshold: 25
+  confirmation_bars: 2
+  max_confidence: 0.9
+  confidence_per_bar: 0.05
+  initial_confidence: 0.3
+
+setup:
+  volume_shrink_ratio: 0.8
+  breakout_volume_multiplier: 1.2
+  breakout_body_ratio: 0.5
+  quality_weights:
+    pullback_similarity: 0.35
+    volume_shrink: 0.30
+    breakout_momentum: 0.35
+
+calibration:
+  ece_threshold: 0.01
+  ece_retrain: 0.02
+  ece_freeze: 0.05
+  n_bins: 10
+  refit_window_days: 60
+
+backtest:
+  min_samples: 1000
+  min_years: 5
+  walk_forward_window_months: 1
+  initial_train_months: 6
+  forward_bias_threshold_severe: 0.30
+  forward_bias_threshold_moderate: 0.10
+
+data_sources:
+  priority: [local, tushare, akshare]
+  heartbeat_interval_seconds: 30
+  failure_threshold: 3
+  switch_delay_ms: 500
+  stale_threshold_seconds: 5
+  min_daily_volume_yi: 100000000
+
+sentiment:
+  ttl_minutes: 30
+  delay_minutes: 5
+  extreme_percentile: 0.95
+  weights:
+    official: 0.4
+    media: 0.3
+    research: 0.2
+    social: 0.1
+
+text_processing:
+  simhash_threshold: 3
+  max_age_hours: 24
+
+sector_linkage:
+  max_edges: 80
+  correlation_warning: 0.80
+  correlation_critical: 0.85
+  correlation_emergency: 0.90
+  granger_p_value: 0.05
+
+trading_costs:
+  commission_bps: 0.25
+  stamp_duty_bps: 1.0
+  slippage_min_bps: 0.5
+  slippage_max_bps: 1.5
+  impact_cost_min_bps: 1.0
+  impact_cost_max_bps: 5.0
+  margin_rate_annual: 0.07
+
+model:
+  rule_confidence_threshold: 0.85
+  rule_sample_threshold: 100
+  max_features_per_model: 30
+  transformer_layers: 2
+  transformer_heads: 4
+  transformer_hidden: 64
+  sequence_length: 20
+
+monitoring:
+  psi_warning: 0.25
+  psi_critical: 0.40
+  brier_degradation_warn: 0.05
+  brier_degradation_freeze: 0.10
+  winrate_deviation_warn: 0.15
+  winrate_deviation_freeze: 0.25

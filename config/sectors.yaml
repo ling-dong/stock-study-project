@@ -1,0 +1,73 @@
+# SPAS 申万一级行业板块配置 — 对应设计文档 §5.3.1
+# 新板块接入仅需修改此文件，无需代码变更
+
+sectors:
+  - sector_id: "801010"
+    name: "农林牧渔"
+    etf_code: "159825.SZ"
+    index_code: "801010.SI"
+    constituents:
+      - code: "002714.SZ"
+        name: "牧原股份"
+        weight: 0.15
+      - code: "300498.SZ"
+        name: "温氏股份"
+        weight: 0.12
+    analysis_level: "basic"
+    related_sectors: ["801120"]
+
+  - sector_id: "801120"
+    name: "食品饮料"
+    etf_code: "515170.SH"
+    index_code: "801120.SI"
+    constituents:
+      - code: "600519.SH"
+        name: "贵州茅台"
+        weight: 0.20
+      - code: "000858.SZ"
+        name: "五粮液"
+        weight: 0.12
+    analysis_level: "basic"
+    related_sectors: ["801010"]
+
+  - sector_id: "801180"
+    name: "医药生物"
+    etf_code: "512010.SH"
+    index_code: "801180.SI"
+    constituents:
+      - code: "600276.SH"
+        name: "恒瑞医药"
+        weight: 0.12
+      - code: "300760.SZ"
+        name: "迈瑞医疗"
+        weight: 0.10
+    analysis_level: "basic"
+    related_sectors: []
+
+  - sector_id: "801750"
+    name: "计算机"
+    etf_code: "512720.SH"
+    index_code: "801750.SI"
+    constituents:
+      - code: "002415.SZ"
+        name: "海康威视"
+        weight: 0.10
+      - code: "002230.SZ"
+        name: "科大讯飞"
+        weight: 0.07
+    analysis_level: "basic"
+    related_sectors: ["801770"]
+
+  - sector_id: "801770"
+    name: "通信"
+    etf_code: "515880.SH"
+    index_code: "801770.SI"
+    constituents:
+      - code: "600050.SH"
+        name: "中国联通"
+        weight: 0.10
+      - code: "000063.SZ"
+        name: "中兴通讯"
+        weight: 0.09
+    analysis_level: "basic"
+    related_sectors: ["801750"]
