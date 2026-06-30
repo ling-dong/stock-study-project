@@ -4,8 +4,9 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import pandas as pd
 
-from bridge.data_reader import list_available_etfs, load_etf_data
+from bridge.data_reader import list_available_etfs, load_etf_data, get_etf_display_name
 from interactive.sandbox_engine import SandboxEngine
+from interactive.kline_chart import create_kline_chart
 
 
 def show():
@@ -40,11 +41,18 @@ def _render_setup():
     if not etfs:
         st.warning("未找到可用的 ETF 数据文件，请先运行数据采集脚本。")
         return
-    etf_codes = [e["code"] for e in etfs]
+    # 构建 显示名 → 代码 的映射
+    display_to_code = {}
+    display_names = []
+    for e in etfs:
+        dname = get_etf_display_name(e["code"])
+        display_to_code[dname] = e["code"]
+        display_names.append(dname)
 
     col1, col2, col3 = st.columns(3)
     with col1:
-        selected = st.selectbox("选择 ETF", etf_codes)
+        selected_display = st.selectbox("选择 ETF", display_names)
+        selected = display_to_code[selected_display]
     with col2:
         initial_cash = st.number_input("初始资金", min_value=10000, value=100000, step=10000)
 
@@ -60,13 +68,9 @@ def _render_setup():
 
             st.caption(f"共 {len(df)} 条数据 | 时间范围: {str(dates[0])[:10]} ~ {str(dates[-1])[:10]}")
 
-            # 预览图
-            fig = go.Figure()
-            fig.add_trace(go.Scatter(x=df["trade_date"], y=df["close"], mode="lines",
-                                     name="收盘价", line=dict(color="#F0B90B", width=1)))
-            fig.update_layout(height=250, margin=dict(l=0, r=0, t=0, b=0),
-                             paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-                             xaxis=dict(showgrid=False), yaxis=dict(showgrid=False))
+            # 预览 K 线图
+            st.caption(f"数据预览：{len(df)} 条记录")
+            fig = create_kline_chart(df.tail(120), show_volume=True, height=280)
             st.plotly_chart(fig, use_container_width=True)
 
             if st.button("🚀 开始模拟交易", use_container_width=True):
@@ -203,45 +207,35 @@ def _render_trading():
 
 
 def _render_trading_chart(engine):
-    """渲染交易图表"""
-    # 获取历史数据 + 当前点
+    """渲染交易 K 线图（蜡烛图 + 均线 + 买卖标注）"""
     df = engine.df.iloc[:engine.state.current_index + 1].copy()
 
-    fig = go.Figure()
-
-    # K 线（简化版用线图）
-    fig.add_trace(go.Scatter(
-        x=df["trade_date"], y=df["close"], mode="lines",
-        name="收盘价", line=dict(color="#F0B90B", width=1.5),
-    ))
+    fig = create_kline_chart(df, show_volume=True, height=420)
 
     # 当前价格标注
     if not engine.is_done:
         bar = engine.current_bar
-        color = "#00FF00" if engine.state.shares > 0 else "#F0B90B"
+        color = "#F0B90B" if engine.state.shares == 0 else "#00FF88"
         fig.add_trace(go.Scatter(
             x=[bar["date"]], y=[bar["close"]], mode="markers",
-            name="当前", marker=dict(color=color, size=12, symbol="diamond"),
+            name="当前", marker=dict(color=color, size=14, symbol="diamond",
+                                     line=dict(color="#000", width=1)),
         ))
 
     # 买卖标注
     for t in engine.state.trades:
-        marker_color = "#00FF00" if t.action == "buy" else "#FF4444"
+        marker_color = "#FF5252" if t.action == "buy" else "#69F0AE"
         marker_symbol = "triangle-up" if t.action == "buy" else "triangle-down"
+        label = f"{'买入' if t.action == 'buy' else '卖出'} ¥{t.price:.3f}"
         fig.add_trace(go.Scatter(
-            x=[t.date], y=[t.price], mode="markers",
-            name=f"{'买入' if t.action == 'buy' else '卖出'} @ ¥{t.price:.2f}",
-            marker=dict(color=marker_color, size=10, symbol=marker_symbol),
+            x=[t.date], y=[t.price], mode="markers+text",
+            name=label, text=[label.split()[0]], textposition="top center",
+            marker=dict(color=marker_color, size=12, symbol=marker_symbol,
+                       line=dict(color="#000", width=1)),
+            textfont=dict(color=marker_color, size=9),
         ))
 
-    fig.update_layout(
-        height=400, margin=dict(l=0, r=0, t=0, b=0),
-        paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-        xaxis=dict(showgrid=True, gridcolor="#1A1A1D"),
-        yaxis=dict(showgrid=True, gridcolor="#1A1A1D"),
-        legend=dict(orientation="h", yanchor="bottom", y=1.02),
-    )
-
+    fig.update_layout(height=420)
     st.plotly_chart(fig, use_container_width=True)
 
 

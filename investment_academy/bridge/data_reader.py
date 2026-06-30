@@ -2,6 +2,7 @@
 import os
 from pathlib import Path
 from typing import Optional
+import yaml
 
 import pandas as pd
 
@@ -96,6 +97,72 @@ def get_etf_close_series(code: str, timeframe: str = "day") -> Optional[pd.Serie
     if df is None or "trade_date" not in df.columns or "close" not in df.columns:
         return None
     return df.set_index("trade_date")["close"]
+
+
+_ETF_NAME_CACHE = None
+
+
+def get_etf_name_map() -> dict[str, str]:
+    """获取 ETF 代码 → 友好名称的映射
+
+    来源：sectors.yaml + 内置宽基ETF名称
+
+    Returns:
+        {'512480.SH': '半导体ETF', '510300.SH': '沪深300ETF', ...}
+    """
+    global _ETF_NAME_CACHE
+    if _ETF_NAME_CACHE is not None:
+        return _ETF_NAME_CACHE
+
+    mapping = {}
+
+    # 1. 从 sectors.yaml 提取
+    sectors_path = SPAS_ROOT / "config" / "sectors.yaml"
+    if sectors_path.exists():
+        with open(sectors_path, "r", encoding="utf-8") as f:
+            data = yaml.safe_load(f) or {}
+        for s in data.get("sectors", []):
+            code = s.get("etf_code", "")
+            name = s.get("name", "")
+            if code and name:
+                mapping[code] = f"{name}ETF"
+
+    # 2. 宽基 ETF 手动补全
+    broad = {
+        "510300.SH": "沪深300ETF",
+        "510050.SH": "上证50ETF",
+        "159915.SZ": "创业板ETF",
+        "588000.SH": "科创50ETF",
+        "512880.SH": "证券ETF",
+        "515000.SH": "科技ETF",
+        "515250.SH": "智能汽车ETF",
+        "516100.SH": "金融科技ETF",
+        "516980.SH": "化工ETF",
+        "159739.SZ": "大数据ETF",
+        "159783.SZ": "双创ETF",
+        "159852.SZ": "软件ETF",
+    }
+    for code, name in broad.items():
+        if code not in mapping:
+            mapping[code] = name
+
+    _ETF_NAME_CACHE = mapping
+    return mapping
+
+
+def get_etf_display_name(code: str) -> str:
+    """获取 ETF 的友好显示名
+
+    Args:
+        code: ETF 代码，如 '512480.SH'
+    Returns:
+        如 '512480.SH  半导体ETF'
+    """
+    names = get_etf_name_map()
+    name = names.get(code, "")
+    if name:
+        return f"{code}  {name}"
+    return code
 
 
 class DataNotAvailableError(Exception):
