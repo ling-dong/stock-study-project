@@ -9,3 +9,4 @@ build/
 venv/
 *.parquet
 data/*.parquet
+.superpowers/
