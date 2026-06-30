@@ -1,0 +1,52 @@
+chapter: p1_ch1
+questions:
+  - id: q1
+    type: single_choice
+    question: "股票代表的是什么？"
+    options:
+      - "公司债务"
+      - "公司所有权的一部分"
+      - "政府债券"
+      - "银行存款凭证"
+    answer: 1
+    explanation: "股票是股份公司发行的所有权凭证，持有股票意味着你拥有公司的一部分所有权。"
+
+  - id: q2
+    type: single_choice
+    question: "我们日常'炒股'发生在哪个市场？"
+    options:
+      - "一级市场"
+      - "二级市场"
+      - "期货市场"
+      - "货币市场"
+    answer: 1
+    explanation: "一级市场是IPO发行市场，二级市场是投资者之间相互买卖的市场。我们说的炒股就是在二级市场。"
+
+  - id: q3
+    type: single_choice
+    question: "以下哪个不是股东的权利？"
+    options:
+      - "分红权"
+      - "投票权"
+      - "无条件退款权"
+      - "知情权"
+    answer: 2
+    explanation: "股东享有分红权、投票权、知情权，但没有无条件退款权。股票投资是有风险的。"
+
+  - id: q4
+    type: true_false
+    question: "A股是以人民币计价、在中国内地上市交易的股票"
+    options: []
+    answer: true
+    explanation: "正确。A股的定义就是在内地注册、内地上市、人民币计价的股票。"
+
+  - id: q5
+    type: single_choice
+    question: "IPO 是什么意思？"
+    options:
+      - "公司被收购"
+      - "公司首次公开发行股票"
+      - "公司退市"
+      - "公司分红"
+    answer: 1
+    explanation: "IPO (Initial Public Offering) 即首次公开发行，是公司第一次向公众出售股票。"
