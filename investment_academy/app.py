@@ -147,6 +147,20 @@ st.markdown("""
     .sandbox-bar { display: flex; gap: 0.8rem; margin: 0.8rem 0; }
     .sandbox-bar .stMetric { background: #0D0D10; border: 1px solid #151518; border-radius: 8px; padding: 0.6rem; }
 
+    /* === Button inside cards === */
+    .p-card + div .stButton { margin-top: -0.3rem; }
+    .p-card + div .stButton button {
+        background: transparent; border: 1px solid #252529; color: #F0B90B;
+        font-size: 0.78rem; padding: 0.4rem 0; border-radius: 0 0 8px 8px;
+        transition: all 0.2s;
+    }
+    .p-card + div .stButton button:hover {
+        background: #F0B90B11; border-color: #F0B90B44; color: #F0B90B;
+    }
+    .p-card + div .stButton button:disabled {
+        color: #3A3A40; border-color: #151518;
+    }
+
     /* === Toast === */
     div[data-testid="stToast"] { background: #141417 !important; border: 1px solid #F0B90B44 !important; }
 </style>
@@ -350,11 +364,12 @@ def _render_home():
         done_chs = [p for p in chs if p.get("completed")]
         phase_pcts[pid] = len(done_chs) / max(len(chs), 1) * 100 if chs else 0
 
-    html_parts = ['<div class="card-grid">']
+    # 简化的学习路径时间线（纯展示，不可点击）
+    st.markdown('<div class="card-grid">', unsafe_allow_html=True)
     for num, name, desc, count, pid in path:
         pct = phase_pcts.get(pid, 0)
-        html_parts.append(f"""
-        <div class="p-card" onclick="alert('click:{pid}')">
+        st.markdown(f"""
+        <div class="p-card">
             <div class="p-num">{num}</div>
             <div class="p-name">{name}</div>
             <div class="p-desc">{desc}</div>
@@ -364,9 +379,8 @@ def _render_home():
             </div>
             {_mini_bar(pct)}
         </div>
-        """)
-    html_parts.append('</div>')
-    st.markdown("".join(html_parts), unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
 
@@ -452,34 +466,30 @@ def _render_phase_grid():
         ("p7_integration", "P7", "实战整合", "回测 / 偏差 / 完整交易系统", 4),
     ]
 
-    html_parts = ['<div class="card-grid">']
-    for pid, num, name, desc, count in phases:
+    # Phase grid — st.columns 统一布局，卡片 + 按钮在同一列
+    cols = st.columns(3)
+    for i, (pid, num, name, desc, count) in enumerate(phases):
         prefix = pid[:2] + "_"
         chs = [p for p in all_progress if p.get("chapter_id", "").startswith(prefix)]
         done_chs = [p for p in chs if p.get("completed")]
         pct = len(done_chs) / max(len(chs), 1) * 100 if chs else 0
-        html_parts.append(f"""
-        <div class="p-card" id="phase-{pid}">
-            <div class="p-num">{num}</div>
-            <div class="p-name">{name}</div>
-            <div class="p-desc">{desc}</div>
-            <div class="p-meta">
-                <span class="p-count">{count} 章</span>
-                {_badge(pct)}
-            </div>
-            {_mini_bar(pct)}
-        </div>
-        """)
-    html_parts.append('</div>')
-    st.markdown("".join(html_parts), unsafe_allow_html=True)
 
-    # Phase card buttons (Streamlit buttons overlaid — clickable)
-    cols = st.columns(3)
-    phase_list = list(phases)
-    for i, (pid, num, name, desc, count) in enumerate(phase_list):
-        col_idx = i % 3
-        with cols[col_idx]:
-            if st.button(f"{num} {name}", key=f"phase_{pid}", use_container_width=True):
+        with cols[i % 3]:
+            # 卡片视觉
+            st.markdown(f"""
+            <div class="p-card">
+                <div class="p-num">{num}</div>
+                <div class="p-name">{name}</div>
+                <div class="p-desc">{desc}</div>
+                <div class="p-meta">
+                    <span class="p-count">{count} 章</span>
+                    {_badge(pct)}
+                </div>
+                {_mini_bar(pct)}
+            </div>
+            """, unsafe_allow_html=True)
+            # 按钮与卡片紧贴
+            if st.button("进入学习 →", key=f"phase_{pid}", use_container_width=True):
                 st.session_state.kt_phase = pid
                 st.session_state.kt_chapter = None
                 st.rerun()
@@ -536,20 +546,30 @@ def _render_chapter_list(phase_id: str):
         score = prog.get("quiz_score", 0) if prog else 0
 
         dot_cls = "done" if is_done else "pending"
-        score_str = f'<span class="ch-score">{score:.0%}</span>' if is_done and score > 0 else ""
+        score_str = f'{score:.0%}' if is_done and score > 0 else ""
 
-        html = f"""
-        <div class="ch-item" id="ch-{ch_id}">
-            <div class="ch-dot {dot_cls}"></div>
-            <div class="ch-title">{ch_num}：{ch_title}</div>
-            {score_str}
-        </div>
-        """
-        st.markdown(html, unsafe_allow_html=True)
-
-        col1, col2 = st.columns([1, 4])
-        with col1:
-            if st.button(f"开始学习", key=f"open_{ch_id}"):
+        # 单行布局：状态点 + 标题 + 分数 + 按钮
+        c1, c2, c3, c4 = st.columns([0.05, 0.42, 0.18, 0.25])
+        with c1:
+            st.markdown(
+                f'<div style="margin-top:0.65rem;"><div class="ch-dot {dot_cls}"></div></div>',
+                unsafe_allow_html=True,
+            )
+        with c2:
+            st.markdown(
+                f'<div style="padding:0.55rem 0;font-size:0.92rem;">{ch_num}：{ch_title}</div>'
+                + (f'<div style="font-size:0.7rem;color:#00FF88;">得分 {score_str}</div>' if score_str else ""),
+                unsafe_allow_html=True,
+            )
+        with c3:
+            if is_done:
+                st.markdown(
+                    '<div style="margin-top:0.55rem;font-size:0.75rem;color:#00FF88;">✅ 已完成</div>',
+                    unsafe_allow_html=True,
+                )
+        with c4:
+            label = "重新学习" if is_done else "开始学习"
+            if st.button(label, key=f"open_{ch_id}", use_container_width=True):
                 st.session_state.kt_chapter = ch_id
                 st.rerun()
 
@@ -638,29 +658,24 @@ def _render_lab_grid():
         ("m6_sentiment", "M6", "市场情绪实验室", "情绪数据与行业分析", "开发中"),
     ]
 
-    html_parts = ['<div class="card-grid">']
-    for lid, num, name, desc, status in labs:
-        badge_cls = "done" if status == "已就绪" else "wait"
-        html_parts.append(f"""
-        <div class="p-card">
-            <div class="p-num">{num}</div>
-            <div class="p-name">{name}</div>
-            <div class="p-desc">{desc}</div>
-            <div class="p-meta">
-                <span class="p-count"></span>
-                <span class="p-badge {badge_cls}">{status}</span>
-            </div>
-        </div>
-        """)
-    html_parts.append('</div>')
-    st.markdown("".join(html_parts), unsafe_allow_html=True)
-
     cols = st.columns(3)
     for i, (lid, num, name, desc, status) in enumerate(labs):
+        badge_cls = "done" if status == "已就绪" else "wait"
         with cols[i % 3]:
+            st.markdown(f"""
+            <div class="p-card">
+                <div class="p-num">{num}</div>
+                <div class="p-name">{name}</div>
+                <div class="p-desc">{desc}</div>
+                <div class="p-meta">
+                    <span class="p-count"></span>
+                    <span class="p-badge {badge_cls}">{status}</span>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
             disabled = status != "已就绪"
-            if st.button(f"{num} {name}", key=f"lab_{lid}", disabled=disabled,
-                        use_container_width=True):
+            label = "进入实验 →" if not disabled else "开发中…"
+            if st.button(label, key=f"lab_{lid}", disabled=disabled, use_container_width=True):
                 st.session_state.pt_lab = lid
                 st.rerun()
 
