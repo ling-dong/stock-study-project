@@ -121,7 +121,7 @@ class SandboxEngine:
         # 检查资金
         shares = self._calc_max_shares(price)
         if shares <= 0:
-            return False, f"资金不足（可用: ¥{self.state.cash:,.0f}）"
+            return False, f"资金不足（可用: {self.state.cash:,.0f} 元）"
 
         return True, f"最多可买 {shares} 股"
 

@@ -37,6 +37,9 @@ def show():
 def _render_setup():
     """设置阶段：选 ETF、时间段"""
     etfs = list_available_etfs()
+    if not etfs:
+        st.warning("未找到可用的 ETF 数据文件，请先运行数据采集脚本。")
+        return
     etf_codes = [e["code"] for e in etfs]
 
     col1, col2, col3 = st.columns(3)
@@ -95,9 +98,10 @@ def _render_trading():
     with col4:
         st.metric("📉 最低", f"¥{bar['low']:.2f}")
     with col5:
+        delta_pct = ((bar['close']/bar['open']-1)*100) if bar['open'] > 0 else 0
         delta_color = "normal" if bar["close"] >= bar["open"] else "inverse"
         st.metric("🏁 收盘", f"¥{bar['close']:.2f}",
-                  delta=f"{((bar['close']/bar['open']-1)*100):.2f}%")
+                  delta=f"{delta_pct:.2f}%")
 
     # 进度条
     progress = (bar["index"] + 1) / engine.state.total_bars
@@ -135,15 +139,22 @@ def _render_trading():
 
         # 买入
         can_buy, buy_msg = engine.can_buy()
-        max_shares = int(engine.state.cash / (bar["close"] * 1.001) / 100) * 100
-        buy_shares = st.number_input("买入股数", min_value=100, max_value=max(max_shares, 100),
-                                     value=min(1000, max_shares), step=100,
+        if can_buy:
+            max_shares = int(engine.state.cash / (bar["close"] * 1.001) / 100) * 100
+            safe_max = max(max_shares, 100)
+        else:
+            max_shares = 0
+            safe_max = 100
+        buy_shares = st.number_input("买入股数", min_value=0, max_value=safe_max,
+                                     value=min(1000, max_shares) if can_buy else 0, step=100,
                                      disabled=not can_buy)
         buy_reason = st.text_input("买入理由", key="buy_reason", placeholder="如：突破均线、放量上涨...")
         if st.button("🟢 买入", use_container_width=True, disabled=not can_buy):
             trade = engine.buy(int(buy_shares), buy_reason)
             if trade:
-                st.toast(f"买入 {trade.shares} 股 @ ¥{trade.price:.2f}")
+                st.toast(f"买入 {trade.shares} 股 @ {trade.price:.2f}")
+                # 清除输入缓存
+                st.session_state.buy_reason = ""
                 st.rerun()
             else:
                 st.error(buy_msg)
@@ -156,7 +167,9 @@ def _render_trading():
         if st.button("🔴 全部卖出", use_container_width=True, disabled=not can_sell):
             trade = engine.sell(engine.state.shares, sell_reason)
             if trade:
-                st.toast(f"卖出 {trade.shares} 股 @ ¥{trade.price:.2f}")
+                st.toast(f"卖出 {trade.shares} 股 @ {trade.price:.2f}")
+                # 清除输入缓存
+                st.session_state.sell_reason = ""
                 st.rerun()
 
         st.markdown("---")
@@ -308,4 +321,5 @@ def _render_results():
         if st.button("🏠 返回首页", use_container_width=True):
             st.session_state.sandbox_engine = None
             st.session_state.sandbox_phase = "setup"
-            st.switch_page("app.py")
+            st.session_state.page = "首页"
+            st.rerun()
