@@ -22,8 +22,8 @@ class MarketStateSvc:
     """
 
     def __init__(self, ema_period: int = 20, adx_period: int = 14,
-                 adx_threshold: int = 25, trend_ratio_bull: float = 0.6,
-                 trend_ratio_bear: float = 0.4, confirmation_bars: int = 2,
+                 adx_threshold: int = 20, trend_ratio_bull: float = 0.45,
+                 trend_ratio_bear: float = 0.35, confirmation_bars: int = 2,
                  initial_confidence: float = 0.3, confidence_per_bar: float = 0.05,
                  max_confidence: float = 0.9):
         self.ema_period = ema_period

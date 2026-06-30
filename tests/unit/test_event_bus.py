@@ -84,7 +84,7 @@ class TestConfigLoader:
         config = AppConfig()
         assert config.risk_constraints.L1_daily_stop == -0.03
         assert config.kelly.fraction == 0.25
-        assert config.market_state.adx_threshold == 25
+        assert config.market_state.adx_threshold == 20  # 日线校准
         assert config.calibration.ece_threshold == 0.01
 
     def test_load_from_yaml(self):

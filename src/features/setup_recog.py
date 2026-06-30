@@ -12,9 +12,9 @@ from src.features.bar_feature import BarFeatureSvc
 
 
 class SetupRecogSvc:
-    def __init__(self, volume_shrink_ratio: float = 0.8,
-                 breakout_volume_multiplier: float = 1.2,
-                 breakout_body_ratio: float = 0.5,
+    def __init__(self, volume_shrink_ratio: float = 0.92,
+                 breakout_volume_multiplier: float = 1.05,
+                 breakout_body_ratio: float = 0.30,
                  pullback_sim_weight: float = 0.35,
                  volume_shrink_weight: float = 0.30,
                  breakout_momentum_weight: float = 0.35):
@@ -31,42 +31,67 @@ class SetupRecogSvc:
         self._last_detected_leg2_idx: Optional[int] = None
 
     def update(self, bar: BarOHLCV) -> Optional[SetupSignal]:
-        """处理新Bar，检测候选/确认Setup"""
+        """处理新Bar，检测候选/确认Setup (H2 + L2)"""
         self._history.append(bar)
         self._bar_counter += 1
         if len(self._history) > 100:
             self._history = self._history[-100:]
 
-        if len(self._history) < 10:
+        if len(self._history) < 15:
             return None
 
-        # 检测H2候选
-        h2_candidate = self._detect_h2_candidate()
-        if h2_candidate:
-            self._candidates[("H2", self._bar_counter)] = h2_candidate
+        # ---- H2 检测 (上涨趋势中的两腿回撤) ----
+        h2_result = self._detect_h2_candidate()
+        if h2_result:
+            self._candidates[("H2", self._bar_counter)] = h2_result
             return SetupSignal(
                 symbol=bar.symbol, timestamp=bar.timestamp,
                 setup_type=SetupType.H2,
                 candidate_vs_confirmed=SetupStatus.CANDIDATE,
-                quality_score=h2_candidate["quality"],
-                maturity=0,
-                detection_bar_index=self._bar_counter,
+                quality_score=h2_result["quality"],
+                maturity=0, detection_bar_index=self._bar_counter,
             )
 
-        # 检测H2确认
+        # ---- L2 检测 (下跌趋势中的两腿反弹) ----
+        l2_result = self._detect_l2_candidate()
+        if l2_result:
+            self._candidates[("L2", self._bar_counter)] = l2_result
+            return SetupSignal(
+                symbol=bar.symbol, timestamp=bar.timestamp,
+                setup_type=SetupType.L2,
+                candidate_vs_confirmed=SetupStatus.CANDIDATE,
+                quality_score=l2_result["quality"],
+                maturity=0, detection_bar_index=self._bar_counter,
+            )
+
+        # ---- 确认检查 (H2 + L2) ----
         for key, candidate in list(self._candidates.items()):
-            if key[0] == "H2":
+            setup_type_str, _ = key
+            if setup_type_str == "H2":
                 confirmed = self._check_h2_confirmation(candidate)
-                if confirmed:
-                    del self._candidates[key]
-                    return SetupSignal(
-                        symbol=bar.symbol, timestamp=bar.timestamp,
-                        setup_type=SetupType.H2,
-                        candidate_vs_confirmed=SetupStatus.CONFIRMED,
-                        quality_score=confirmed,
-                        maturity=self._bar_counter - key[1],
-                        detection_bar_index=self._bar_counter,
-                    )
+            elif setup_type_str == "L2":
+                confirmed = self._check_l2_confirmation(candidate)
+            else:
+                continue
+
+            if confirmed is not None:
+                del self._candidates[key]
+                return SetupSignal(
+                    symbol=bar.symbol, timestamp=bar.timestamp,
+                    setup_type=SetupType(setup_type_str),
+                    candidate_vs_confirmed=SetupStatus.CONFIRMED,
+                    quality_score=confirmed,
+                    maturity=self._bar_counter - key[1],
+                    detection_bar_index=self._bar_counter,
+                )
+
+        # ---- 候选过期清理 ----
+        expired = [
+            k for k, v in self._candidates.items()
+            if self._bar_counter - k[1] > 30  # 30根Bar未确认 → 失效
+        ]
+        for k in expired:
+            del self._candidates[k]
 
         return None
 
@@ -166,6 +191,160 @@ class SetupRecogSvc:
             1.0, candidate["vol_ratio"], breakout_momentum
         )
         return round(min(1.0, quality), 3)
+
+    # ================================================================
+    # L2 Setup — 下跌趋势中的两腿反弹 (lower high)
+    # ================================================================
+    def _detect_l2_candidate(self) -> Optional[dict]:
+        """检测L2结构候选态
+
+        条件 (H2的镜像):
+        1. 最近有下跌趋势 — EMA20斜率为负
+        2. 形成两腿反弹结构 (lower high)
+        3. 第二腿成交量萎缩
+        """
+        if len(self._history) < 15:
+            return None
+
+        closes = np.array([float(b.close) for b in self._history])
+        volumes = np.array([float(b.volume) for b in self._history])
+
+        # 趋势过滤: EMA斜率负 + 价格在MA下方 + ADX确认趋势强度
+        if len(closes) >= 22:
+            alpha = 2.0 / 21.0
+            ema = np.zeros_like(closes)
+            ema[0] = closes[0]
+            for i in range(1, len(closes)):
+                ema[i] = alpha * closes[i] + (1.0 - alpha) * ema[i-1]
+            ema_declining = ema[-1] < ema[-5]
+            price_below_ema = closes[-1] < ema[-1]
+
+            # ADX(14)趋势强度 — 与MarketStateSvc保持一致
+            adx = self._calc_adx()
+            trend_strong = adx >= 18  # 日线校准阈值
+
+            if not (ema_declining and price_below_ema and trend_strong):
+                return None
+
+        n = len(closes)
+        highs = []
+        for i in range(2, n - 2):
+            if closes[i] > closes[i-1] and closes[i] > closes[i-2] \
+               and closes[i] > closes[i+1] and closes[i] > closes[i+2]:
+                highs.append(i)
+
+        if len(highs) < 2:
+            return None
+
+        leg1_idx = highs[-2]
+        leg2_idx = highs[-1]
+
+        # 第二腿应比第一腿低 (下跌趋势中的 lower high)
+        if closes[leg2_idx] >= closes[leg1_idx]:
+            return None
+
+        # 成交量萎缩检查
+        if leg1_idx < 2 or leg2_idx < 2:
+            return None
+        vol_leg1 = np.mean(volumes[leg1_idx-2:leg1_idx+3])
+        vol_leg2 = np.mean(volumes[leg2_idx-2:leg2_idx+3])
+        if vol_leg1 == 0:
+            return None
+        vol_ratio = vol_leg2 / vol_leg1
+
+        if vol_ratio >= self.volume_shrink_ratio:
+            return None
+
+        # 两腿反弹幅度相似度
+        pivot_low = min(closes[leg1_idx:leg2_idx+1])
+        leg1_height = closes[leg1_idx] - pivot_low
+        leg2_height = closes[leg2_idx] - pivot_low
+        if leg1_height <= 0:
+            return None
+        height_ratio = leg2_height / leg1_height
+        pullback_sim = max(0.0, 1.0 - abs(1.0 - height_ratio))
+
+        quality = self._calc_quality(pullback_sim, vol_ratio, 0.0)
+
+        return {
+            "quality": round(min(1.0, quality), 3),
+            "pivot_low": float(pivot_low),
+            "leg2_idx": leg2_idx,
+            "vol_ratio": float(vol_ratio),
+        }
+
+    def _check_l2_confirmation(self, candidate: dict) -> Optional[float]:
+        """检查L2确认条件 (H2的镜像)
+
+        条件:
+        1. 价格向下跌破L2结构低点
+        2. 成交量放大 (>前5根均值×1.2)
+        3. 突破Bar实体比例>threshold
+        """
+        current = self._history[-1]
+        pivot = candidate["pivot_low"]
+        c, o = float(current.close), float(current.open)
+
+        # 向下突破 (mirror: 向上突破)
+        if c >= pivot and o >= pivot:
+            return None
+
+        recent_vols = [float(b.volume) for b in self._history[-6:-1]]
+        avg_vol = np.mean(recent_vols) if recent_vols else float(current.volume)
+        if float(current.volume) < avg_vol * self.breakout_volume_multiplier:
+            return None
+
+        body_ratio = self._bar_feature.compute_body_ratio(current)
+        if body_ratio < self.breakout_body_ratio:
+            return None
+
+        breakout_momentum = body_ratio
+        quality = self._calc_quality(
+            1.0, candidate["vol_ratio"], breakout_momentum
+        )
+        return round(min(1.0, quality), 3)
+
+    def _calc_adx(self, period: int = 14) -> float:
+        """计算ADX趋势强度 (复用MarketStateSvc逻辑)"""
+        if len(self._history) < period + 1:
+            return 0.0
+        highs = np.array([float(b.high) for b in self._history])
+        lows = np.array([float(b.low) for b in self._history])
+        closes_arr = np.array([float(b.close) for b in self._history])
+
+        tr = np.zeros(len(self._history))
+        plus_dm = np.zeros(len(self._history))
+        minus_dm = np.zeros(len(self._history))
+
+        for i in range(1, len(self._history)):
+            tr[i] = max(highs[i] - lows[i],
+                        abs(highs[i] - closes_arr[i-1]),
+                        abs(lows[i] - closes_arr[i-1]))
+            up_move = highs[i] - highs[i-1]
+            down_move = lows[i-1] - lows[i]
+            plus_dm[i] = up_move if up_move > down_move and up_move > 0 else 0
+            minus_dm[i] = down_move if down_move > up_move and down_move > 0 else 0
+
+        atr = self._wilder_smooth(tr, period)
+        plus_di = self._wilder_smooth(plus_dm, period) / (atr + 1e-10) * 100
+        minus_di = self._wilder_smooth(minus_dm, period) / (atr + 1e-10) * 100
+
+        dx = abs(plus_di - minus_di) / (plus_di + minus_di + 1e-10) * 100
+        adx = np.zeros_like(dx)
+        for i in range(period, len(dx)):
+            if i == period:
+                adx[i] = np.mean(dx[1:period+1])
+            else:
+                adx[i] = (adx[i-1] * (period - 1) + dx[i]) / period
+
+        return float(adx[-1]) if len(adx) > 0 else 0.0
+
+    def _wilder_smooth(self, data: np.ndarray, period: int) -> np.ndarray:
+        result = np.zeros_like(data)
+        result[period] = np.mean(data[1:period+1])
+        for i in range(period + 1, len(data)):
+            result[i] = (result[i-1] * (period - 1) + data[i]) / period
+        return result
 
     def _calc_quality(self, pullback_sim: float, vol_ratio: float,
                       breakout_momentum: float) -> float:

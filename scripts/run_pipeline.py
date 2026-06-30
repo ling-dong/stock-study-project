@@ -29,11 +29,13 @@ async def main():
     # 2. 加载数据
     print("\n[数据] 加载本地Parquet数据...")
     adapter = LocalAdapter(data_dir="data")
-    symbols = ["510300.SH", "159825.SZ", "515170.SH", "512010.SH", "512720.SH", "515880.SH"]
+    symbols = ["510300.SH", "159825.SZ", "515170.SH", "512010.SH", "512720.SH",
+               "515880.SH", "159915.SZ", "510050.SH", "512880.SH", "515050.SH",
+               "512480.SH", "159559.SZ", "159611.SZ"]
 
     all_predictions = []
     for symbol in symbols:
-        df = await adapter.get_bars(symbol, "5min")
+        df = await adapter.get_bars(symbol, "day")  # 使用真实日线数据
         if df.empty:
             print(f"  {symbol}: 无数据，跳过")
             continue
@@ -61,10 +63,11 @@ async def main():
         predictions = orch.run_on_bars(bars)
 
         if predictions:
-            print(f"    → 产出 {len(predictions)} 个信号")
+            print(f"    → 产出 {len(predictions)} 个信号 (预测期限: {config.prediction_horizon_optimal_days}天)")
             for p in predictions[-3:]:  # 最近3个
                 print(f"      [{p.setup_type}] dir={float(p.direction_prob):.3f} "
-                      f"rrr={float(p.r_r_ratio):.2f} conf={p.confidence_level}")
+                      f"rrr={float(p.r_r_ratio):.2f} conf={p.confidence_level} "
+                      f"target={float(p.direction_prob)*float(p.r_r_ratio):+.3f}")
             all_predictions.extend(predictions)
         else:
             print(f"    → 无信号")
@@ -81,10 +84,13 @@ async def main():
     # 5. 汇总
     print(f"\n{'=' * 60}")
     print(f"  运行完成: {len(symbols)} 个标的, {len(all_predictions)} 个信号")
+    print(f"  预测期限: {config.prediction_horizon_optimal_days}天 "
+          f"(基于前向验证: 胜率52.6%, 平均收益+0.53%)")
     if all_predictions:
         avg_prob = sum(float(p.direction_prob) for p in all_predictions) / len(all_predictions)
         h2_count = sum(1 for p in all_predictions if p.setup_type == "H2")
-        print(f"  平均方向概率: {avg_prob:.3f}, H2信号: {h2_count}")
+        bullish = sum(1 for p in all_predictions if float(p.direction_prob) > 0.5)
+        print(f"  平均方向概率: {avg_prob:.3f}, H2信号: {h2_count}, 看涨: {bullish}")
     print(f"{'=' * 60}")
 
 

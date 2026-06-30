@@ -40,7 +40,12 @@ class RuleEngine:
         current_price: float,
         atr: float = 0.01,
     ) -> Tuple[dict, float, str]:
-        """评估Setup并输出规则特征 + 先验概率 + 置信度
+        """评估Setup并输出规则特征 + 概率 + 置信度
+
+        冷启动修复 (§4.3.1 修订):
+        - 先验概率从 0.55(H2)/0.55(L2)/0.45(FB) 起步 (非0.5)
+        - 市场状态调节 / 趋势对齐 始终生效 (不再被 sample_size 阻塞)
+        - 小样本时回归因子降低 (0.3 vs 0.7)，避免过度自信
 
         Args:
             setup: 已确认的SetupSignal
@@ -54,40 +59,49 @@ class RuleEngine:
         # 1. 基础特征
         is_setup = setup.is_confirmed
         setup_quality = float(setup.quality_score)
-
-        # 2. 历史胜率(小样本→0.5 uninformative prior)
         setup_type_str = setup.setup_type.value
         sample_size = self._sample_counts.get(setup_type_str, 0)
         baserate = self._baserates.get(setup_type_str, 0.5)
-        if sample_size < self.sample_threshold:
-            historical_baserate = 0.5
+
+        # 2. 基准概率: 先验(0.55/0.55/0.45) vs 回测验证值
+        #    冷启动时使用先验值而非0.5，避免信号完全无信息
+        if sample_size >= self.sample_threshold:
+            p_base = baserate           # 回测验证后的真实胜率
+            sample_sufficient = True
         else:
-            historical_baserate = baserate
+            p_base = baserate           # 先验值 (H2=0.55, L2=0.55, FB=0.45)
+            sample_sufficient = False
 
-        # 3. 趋势对齐加分(仅在有足够历史数据时适用)
+        # 3. 趋势对齐调整 — 始终生效
+        #    H2+BULL / L2+BEAR 额外加分; FB+非趋势 额外加分
+        #    加权: 市场状态置信度越高, 加分越多
         trend_aligned = self._check_trend_alignment(setup, market_state)
-        if trend_aligned and sample_size >= self.sample_threshold:
-            historical_baserate = min(historical_baserate + 0.05, 0.95)
+        mc = float(market_state.confidence)
 
-        # 4. 市场状态调节
-        if market_state.state == MarketStateType.NEUTRAL:
-            historical_baserate = max(historical_baserate - 0.05, 0.3)
+        if trend_aligned:
+            p_base = min(p_base + 0.05 * mc, 0.95)
+        elif market_state.state == MarketStateType.NEUTRAL:
+            # NEUTRAL时向0.5回拉, 不确定性越高惩罚越重
+            p_base = max(p_base - 0.05 * (1.0 - mc), 0.30)
+
+        # 4. 小样本回归 — 向0.5收缩
+        #    样本充分: 信任信号 (regress=0.7)
+        #    冷启动:   保守收缩 (regress=0.3)
+        regress_factor = 0.7 if sample_sufficient else 0.3
+        p_rule = 0.5 + (p_base - 0.5) * regress_factor
 
         # 5. 置信度判定
         if setup_quality >= 0.8 and trend_aligned and market_state.is_trending:
             confidence = "high"
-            p_rule = historical_baserate
         elif setup_quality >= 0.5:
             confidence = "medium"
-            p_rule = 0.5 + (historical_baserate - 0.5) * 0.7  # regress toward 0.5
         else:
             confidence = "low"
-            p_rule = 0.5 + (historical_baserate - 0.5) * 0.3
 
         rule_features = {
             "is_setup": is_setup,
             "setup_quality": setup_quality,
-            "historical_baserate": historical_baserate,
+            "historical_baserate": p_base,   # 调节后的基准概率(不含回归)
             "sample_size": sample_size,
             "trend_aligned": trend_aligned,
             "market_state": market_state.state.value,

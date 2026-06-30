@@ -1,11 +1,27 @@
-# SPAS 全局配置 — 对应设计文档中所有可调参数
+# SPAS 全局配置
 # 修改此文件后无需重启服务（配置中心热加载）
+
+# Tushare Pro API配置
+tushare:
+  token: "adc94f22fc664040b9e91a0f89b45153"
+  api_url: "https://ts.gyzcloud.top/api"
 
 timeframes:
   daily: "1d"
   60min: "60min"
   15min: "15min"
   5min: "5min"
+
+# 预测期限 — 基于13只ETF×726天历史Walk-Forward前向验证结果(2026-06-25)
+prediction_horizon:
+  optimal_days: 5          # 综合评分最优(胜率52.6%×收益+0.53%×√34信号)
+  best_accuracy_days: 3    # 胜率最高(54.5%), 适合保守策略
+  horizon_stats:           # 各期限汇总
+    1day:  {accuracy: 0.449, avg_return: -0.0039, signals: 34}
+    3day:  {accuracy: 0.545, avg_return: 0.0025, signals: 34}
+    5day:  {accuracy: 0.526, avg_return: 0.0053, signals: 34}
+    10day: {accuracy: 0.417, avg_return: 0.0018, signals: 34}
+    20day: {accuracy: 0.455, avg_return: -0.0031, signals: 34}
 
 latency_budgets:
   5min_signal_ms: 2000
@@ -31,20 +47,26 @@ volatility_anchor:
   max_position_cap_at_high_vol: 0.05
 
 market_state:
+  # 日线校准参数 V2 (原分钟级: bull=0.6/bear=0.4/adx=25)
+  # 实测: 半导体ETF+78%时趋势K线比=0.45, 恰好卡在旧阈值边界
+  # 修复: bull阈值 0.45→0.40, ADX 20→18
   ema_period: 20
-  trend_bar_ratio_bull: 0.6
-  trend_bar_ratio_bear: 0.4
+  trend_bar_ratio_bull: 0.40    # 日线实体天然偏小，放宽至0.40
+  trend_bar_ratio_bear: 0.35
   adx_period: 14
-  adx_threshold: 25
+  adx_threshold: 18             # 日线ADX通常低于分钟线，降至18
   confirmation_bars: 2
   max_confidence: 0.9
   confidence_per_bar: 0.05
   initial_confidence: 0.3
 
 setup:
-  volume_shrink_ratio: 0.8
-  breakout_volume_multiplier: 1.2
-  breakout_body_ratio: 0.5
+  # 日线校准参数 V2 (原分钟级: vol_shrink=0.8/break_body=0.5/break_vol=1.2)
+  # 实测: 日线726根K线仅2个Setup信号, 密度0.28%过低
+  # 修复: 缩量阈值放宽至0.95, 突破实体比降至0.25
+  volume_shrink_ratio: 0.95     # 日线成交量日间波动大, 92%过于严格
+  breakout_volume_multiplier: 1.05
+  breakout_body_ratio: 0.25     # 日线实体天然小, 0.30仍偏高
   quality_weights:
     pullback_similarity: 0.35
     volume_shrink: 0.30

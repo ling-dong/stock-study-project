@@ -44,12 +44,16 @@ class TestRuleEngine:
         assert features["setup_quality"] < 0.5
 
     def test_small_sample_baserate(self):
-        """样本量<100时 baserate=0.5"""
+        """冷启动: 样本量=0时使用先验值(0.55), 受趋势调节后不再强制0.5"""
         setup = self._make_h2(quality=Decimal("0.60"))
         state = self._make_bull_state()
         features, p_rule, confidence = self.engine.evaluate(setup, state, 3.5)
         assert features["sample_size"] == 0  # 初始为0
-        assert features["historical_baserate"] == 0.5
+        # 修复后: baserate=0.55(H2先验)+0.05*0.7(BULL加分)=0.585
+        assert features["historical_baserate"] == pytest.approx(0.585, abs=0.001)
+        # 冷启动回归: p_rule = 0.5 + (0.585-0.5)*0.3 ≈ 0.5255
+        assert p_rule > 0.5  # 不再精确等于0.5
+        assert p_rule < 0.55  # 受回归限制, 不会太高
 
     def test_update_baserate(self):
         """更新胜率后应反映在evaluate中"""

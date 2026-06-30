@@ -71,3 +71,129 @@ sectors:
         weight: 0.09
     analysis_level: "basic"
     related_sectors: ["801750"]
+
+  - sector_id: "801760"
+    name: "半导体"
+    etf_code: "512480.SH"
+    index_code: "801760.SI"
+    constituents:
+      - code: "688981.SH"
+        name: "中芯国际"
+        weight: 0.12
+      - code: "002371.SZ"
+        name: "北方华创"
+        weight: 0.10
+    analysis_level: "basic"
+    related_sectors: ["801750"]
+
+  - sector_id: "801770"
+    name: "存储芯片"
+    etf_code: "159559.SZ"
+    index_code: "801770.SI"
+    constituents:
+      - code: "002049.SZ"
+        name: "紫光国微"
+        weight: 0.08
+      - code: "603986.SH"
+        name: "兆易创新"
+        weight: 0.07
+    analysis_level: "basic"
+    related_sectors: ["801760"]
+
+  - sector_id: "801730"
+    name: "电力"
+    etf_code: "159611.SZ"
+    index_code: "801730.SI"
+    constituents:
+      - code: "600900.SH"
+        name: "长江电力"
+        weight: 0.15
+      - code: "003816.SZ"
+        name: "中国广核"
+        weight: 0.10
+    analysis_level: "basic"
+    related_sectors: []
+
+  - sector_id: "801020"
+    name: "煤炭"
+    etf_code: "515220.SH"
+    index_code: "801020.SI"
+    constituents:
+      - code: "601088.SH"
+        name: "中国神华"
+        weight: 0.18
+      - code: "601225.SH"
+        name: "陕西煤业"
+        weight: 0.12
+    analysis_level: "basic"
+    related_sectors: ["801160", "801040"]
+
+  - sector_id: "801080"
+    name: "半导体材料"
+    etf_code: "562590.SH"
+    index_code: "801080.SI"
+    constituents:
+      - code: "688012.SH"
+        name: "中微公司"
+        weight: 0.12
+      - code: "002371.SZ"
+        name: "北方华创"
+        weight: 0.10
+    analysis_level: "basic"
+    related_sectors: ["801760", "801750"]
+
+  - sector_id: "801740"
+    name: "商业航天"
+    etf_code: "563300.SH"
+    index_code: "801740.SI"
+    constituents:
+      - code: "600118.SH"
+        name: "中国卫星"
+        weight: 0.10
+      - code: "600879.SH"
+        name: "航天电子"
+        weight: 0.08
+    analysis_level: "basic"
+    related_sectors: ["801760", "801750"]
+
+  - sector_id: "801761"
+    name: "通信设备"
+    etf_code: "515050.SH"
+    index_code: "801760.SI"
+    constituents:
+      - code: "000063.SZ"
+        name: "中兴通讯"
+        weight: 0.10
+      - code: "600703.SH"
+        name: "三安光电"
+        weight: 0.06
+    analysis_level: "basic"
+    related_sectors: ["801080", "801750", "801770"]
+
+  - sector_id: "801751"
+    name: "人工智能"
+    etf_code: "159819.SZ"
+    index_code: "801750.SI"
+    constituents:
+      - code: "002230.SZ"
+        name: "科大讯飞"
+        weight: 0.10
+      - code: "688111.SH"
+        name: "金山办公"
+        weight: 0.08
+    analysis_level: "basic"
+    related_sectors: ["801080", "801760"]
+
+  - sector_id: "CPO"
+    name: "CPO/光通信"
+    etf_code: "159869.SZ"
+    index_code: "CPO.SI"
+    constituents:
+      - code: "300308.SZ"
+        name: "中际旭创"
+        weight: 0.15
+      - code: "300394.SZ"
+        name: "天孚通信"
+        weight: 0.10
+    analysis_level: "basic"
+    related_sectors: ["801080", "801760", "801761"]

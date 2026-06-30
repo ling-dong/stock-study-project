@@ -27,10 +27,10 @@ class VolatilityAnchorConfig(BaseModel):
 
 class MarketStateConfig(BaseModel):
     ema_period: int = 20
-    trend_bar_ratio_bull: float = 0.6
-    trend_bar_ratio_bear: float = 0.4
+    trend_bar_ratio_bull: float = 0.45     # 日线校准
+    trend_bar_ratio_bear: float = 0.35
     adx_period: int = 14
-    adx_threshold: int = 25
+    adx_threshold: int = 20                # 日线校准
     confirmation_bars: int = 2
     max_confidence: float = 0.9
     confidence_per_bar: float = 0.05
@@ -38,9 +38,9 @@ class MarketStateConfig(BaseModel):
 
 
 class SetupConfig(BaseModel):
-    volume_shrink_ratio: float = 0.8
-    breakout_volume_multiplier: float = 1.2
-    breakout_body_ratio: float = 0.5
+    volume_shrink_ratio: float = 0.92      # 日线校准
+    breakout_volume_multiplier: float = 1.05
+    breakout_body_ratio: float = 0.30      # 日线校准
     quality_weights: dict = Field(default_factory=lambda: {
         "pullback_similarity": 0.35,
         "volume_shrink": 0.30,
@@ -85,6 +85,9 @@ class AppConfig(BaseModel):
     calibration: CalibrationConfig = Field(default_factory=CalibrationConfig)
     backtest: BacktestConfig = Field(default_factory=BacktestConfig)
     trading_costs: TradingCostsConfig = Field(default_factory=TradingCostsConfig)
+    # 预测期限 — 基于13只ETF前向验证的最优值
+    prediction_horizon_optimal_days: int = 5
+    prediction_horizon_best_accuracy_days: int = 3
 
 
 def load_config(config_dir: str = "config") -> AppConfig:
