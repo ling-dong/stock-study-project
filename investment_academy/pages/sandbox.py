@@ -151,14 +151,15 @@ def _render_trading():
             safe_max = 100
         buy_shares = st.number_input("买入股数", min_value=0, max_value=safe_max,
                                      value=min(1000, max_shares) if can_buy else 0, step=100,
-                                     disabled=not can_buy)
-        buy_reason = st.text_input("买入理由", key="buy_reason", placeholder="如：突破均线、放量上涨...")
-        if st.button("🟢 买入", use_container_width=True, disabled=not can_buy):
+                                     disabled=not can_buy,
+                                     key=f"buy_shares_{engine.state.current_index}")
+        buy_reason = st.text_input("买入理由", key=f"buy_reason_{engine.state.current_index}",
+                                   placeholder="如：突破均线、放量上涨...")
+        if st.button("🟢 买入", use_container_width=True, disabled=not can_buy,
+                    key=f"buy_btn_{engine.state.current_index}"):
             trade = engine.buy(int(buy_shares), buy_reason)
             if trade:
                 st.toast(f"买入 {trade.shares} 股 @ {trade.price:.2f}")
-                # 清除输入缓存
-                st.session_state.buy_reason = ""
                 st.rerun()
             else:
                 st.error(buy_msg)
@@ -167,24 +168,24 @@ def _render_trading():
 
         # 卖出
         can_sell, sell_msg = engine.can_sell()
-        sell_reason = st.text_input("卖出理由", key="sell_reason", placeholder="如：达到目标价、止损...")
-        if st.button("🔴 全部卖出", use_container_width=True, disabled=not can_sell):
+        sell_reason = st.text_input("卖出理由", key=f"sell_reason_{engine.state.current_index}",
+                                    placeholder="如：达到目标价、止损...")
+        if st.button("🔴 全部卖出", use_container_width=True, disabled=not can_sell,
+                    key=f"sell_btn_{engine.state.current_index}"):
             trade = engine.sell(engine.state.shares, sell_reason)
             if trade:
                 st.toast(f"卖出 {trade.shares} 股 @ {trade.price:.2f}")
-                # 清除输入缓存
-                st.session_state.sell_reason = ""
                 st.rerun()
 
         st.markdown("---")
 
         # 跳过
-        if st.button("⏭️ 跳过", use_container_width=True):
+        if st.button("⏭️ 跳过", use_container_width=True, key=f"skip_{engine.state.current_index}"):
             engine.advance()
             st.rerun()
 
         # 结束
-        if st.button("⏹️ 结束模拟", use_container_width=True):
+        if st.button("⏹️ 结束模拟", use_container_width=True, key=f"end_{engine.state.current_index}"):
             st.session_state.sandbox_phase = "done"
             st.rerun()
 
