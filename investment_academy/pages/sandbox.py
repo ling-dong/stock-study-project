@@ -9,8 +9,8 @@ from interactive.sandbox_engine import SandboxEngine
 
 
 def show():
-    st.markdown("## 🎮 交易沙盒")
-    st.markdown("*用历史数据模拟真实交易决策，零风险积累经验*")
+    st.markdown('<div class="section-hd"><h2>交易沙盒</h2><p>用历史数据模拟真实交易决策，零风险积累经验</p></div>',
+                unsafe_allow_html=True)
 
     # Initialize session state
     if "sandbox_engine" not in st.session_state:
@@ -256,7 +256,7 @@ def _render_results():
 
     perf = engine.get_performance()
 
-    st.markdown("## 🏆 模拟交易结果")
+    st.markdown('<div class="section-hd"><h2>模拟交易结果</h2></div>', unsafe_allow_html=True)
 
     # 核心指标
     col1, col2, col3, col4, col5 = st.columns(5)
