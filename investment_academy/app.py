@@ -27,7 +27,8 @@ st.markdown("""
         background-image: radial-gradient(circle, #1A1A1D 1px, transparent 1px);
         background-size: 24px 24px;
     }
-    .block-container { max-width: 960px; padding-top: 1.2rem !important; }
+    .block-container { max-width: 1140px; padding-top: 1.2rem !important; padding-left: 3rem !important; padding-right: 3rem !important; }
+    div[data-testid="stVerticalBlock"] { gap: 0.5rem; }
 
     #MainMenu, footer, .stDeployButton, div[data-testid="stToolbar"] { display: none !important; }
 
@@ -120,13 +121,23 @@ st.markdown("""
     .ch-title { flex: 1; font-size: 0.9rem; color: #E8E6E3; }
     .ch-score { font-size: 0.72rem; color: #6B6B7B; }
 
+    /* === Back Button === */
+    div[data-testid="stButton"] button[kind="secondary"] {
+        background: #0D0D10; border: 1px solid #252529; color: #F0B90B;
+        font-size: 0.82rem; padding: 0.45rem 1.2rem; border-radius: 6px;
+    }
+    div[data-testid="stButton"] button[kind="secondary"]:hover {
+        border-color: #F0B90B44; background: #F0B90B11;
+    }
+
     /* === Buttons === */
     .btn-back {
-        display: inline-block; padding: 0.4rem 1rem; font-size: 0.8rem; color: #6B6B7B;
-        border: 1px solid #1A1A1D; border-radius: 6px; cursor: pointer; margin-bottom: 1rem;
-        transition: all 0.2s; background: transparent;
+        display: inline-flex; align-items: center; gap: 0.3rem;
+        padding: 0.5rem 1.2rem; font-size: 0.82rem; color: #F0B90B;
+        border: 1px solid #252529; border-radius: 6px; cursor: pointer; margin-bottom: 1.2rem;
+        transition: all 0.2s; background: #0D0D10;
     }
-    .btn-back:hover { color: #F0B90B; border-color: #F0B90B33; }
+    .btn-back:hover { color: #F0B90B; border-color: #F0B90B66; background: #141417; }
 
     /* === Continue Button === */
     .continue-wrap { margin: 0.8rem 0; }
@@ -180,15 +191,18 @@ if "pt_lab" not in st.session_state:
     st.session_state.pt_lab = None
 
 # ══════════════════════════════════════════════════════════════
-#  Sidebar — 仅顶级导航 + 快速统计
+#  Sidebar — 顶级导航 + 快速统计 + 阶段进度
 # ══════════════════════════════════════════════════════════════
 
 with st.sidebar:
-    st.markdown("# 投资学院")
-    st.caption("系统化投资学习平台")
+    st.markdown("""
+    <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.8rem;">
+        <span style="font-size:1.4rem;">📈</span>
+        <span style="font-size:1.05rem;font-weight:500;color:#F5F0E0;">投资学院</span>
+    </div>
+    """, unsafe_allow_html=True)
 
-    st.markdown("<br>", unsafe_allow_html=True)
-
+    # ── 导航 ──
     nav_labels = {
         "home": "🏠  首页",
         "knowledge": "📚  知识轨道",
@@ -208,7 +222,6 @@ with st.sidebar:
 
     if selected != st.session_state.nav_page:
         st.session_state.nav_page = selected
-        # 清除子导航状态（切换到不同顶级页时）
         if selected != "knowledge":
             st.session_state.kt_phase = None
             st.session_state.kt_chapter = None
@@ -218,7 +231,7 @@ with st.sidebar:
 
     st.markdown("<hr>", unsafe_allow_html=True)
 
-    # 快速统计
+    # ── 统计数据 ──
     try:
         from db.repository import get_all_chapter_progress
         all_p = get_all_chapter_progress()
@@ -226,17 +239,60 @@ with st.sidebar:
         scores = [p.get("quiz_score", 0) for p in all_p if p.get("completed") and p.get("quiz_score")]
         avg = sum(scores) / len(scores) * 100 if scores else 0
     except Exception:
+        all_p = []
         done = 0
         avg = 0
 
-    st.markdown(f'<div style="font-size:0.72rem;color:#6B6B7B;">已完成 <b style="color:#F0B90B;">{done}</b> / 34 章</div>',
-                unsafe_allow_html=True)
+    total_pct = done / 34 * 100
+    st.markdown(f"""
+    <div style="margin-bottom:0.8rem;">
+        <div style="display:flex;justify-content:space-between;font-size:0.72rem;margin-bottom:0.2rem;">
+            <span style="color:#6B6B7B;">总体进度</span>
+            <span style="color:#F0B90B;">{done}/34</span>
+        </div>
+        <div style="height:4px;background:#1A1A1D;border-radius:2px;overflow:hidden;">
+            <div style="height:100%;width:{total_pct:.0f}%;background:linear-gradient(to right,#F0B90B88,#F0B90B);border-radius:2px;"></div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
     if avg > 0:
-        st.markdown(f'<div style="font-size:0.72rem;color:#6B6B7B;">测验均分 <b style="color:#F0B90B;">{avg:.0f}%</b></div>',
+        st.markdown(f'<div style="font-size:0.72rem;color:#6B6B7B;margin-bottom:0.3rem;">测验均分 <b style="color:#F0B90B;">{avg:.0f}%</b></div>',
                     unsafe_allow_html=True)
 
+    st.markdown("<hr>", unsafe_allow_html=True)
+
+    # ── 阶段进度迷你条 ──
+    phase_names_short = [
+        ("p1", "P1"),
+        ("p2", "P2"),
+        ("p3", "P3"),
+        ("p4", "P4"),
+        ("p5", "P5"),
+        ("p6", "P6"),
+        ("p7", "P7"),
+    ]
+    st.markdown('<div style="font-size:0.68rem;color:#4A4A55;letter-spacing:0.08em;margin-bottom:0.4rem;">阶段进度</div>',
+                unsafe_allow_html=True)
+    for pid, label in phase_names_short:
+        prefix = pid + "_"
+        chs = [p for p in all_p if p.get("chapter_id", "").startswith(prefix)]
+        done_chs = sum(1 for p in chs if p.get("completed"))
+        total_chs = max(len(chs), 1)
+        pct = done_chs / total_chs * 100
+        bar_color = "#00FF88" if pct >= 100 else ("#F0B90B" if pct > 0 else "#1A1A1D")
+        st.markdown(f"""
+        <div style="display:flex;align-items:center;gap:0.4rem;margin-bottom:0.25rem;">
+            <span style="font-size:0.65rem;color:#6B6B7B;width:22px;">{label}</span>
+            <div style="flex:1;height:3px;background:#1A1A1D;border-radius:2px;overflow:hidden;">
+                <div style="height:100%;width:{pct:.0f}%;background:{bar_color};border-radius:2px;"></div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.markdown("<hr>", unsafe_allow_html=True)
     st.markdown(
-        '<div style="position:fixed;bottom:1rem;font-size:0.6rem;color:#3A3A40;">Ctrl+C 停止</div>',
+        '<div style="font-size:0.6rem;color:#3A3A40;">Ctrl+C 停止</div>',
         unsafe_allow_html=True,
     )
 
