@@ -36,45 +36,32 @@ streamlit run app.py
 ### 2.1 与 SPAS 的关系
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                     D:\stock_market                      │
-│                                                         │
-│  ┌──────────────┐          ┌──────────────────────────┐ │
-│  │  SPAS 系统    │          │  Investment Academy       │ │
-│  │  (不改动)     │◄─────────│  (新系统)                 │ │
-│  │              │  Bridge  │                          │ │
-│  │ src/         │  适配器   │ investment_academy/      │ │
-│  │ config/      │  单向依赖 │  ├── app.py              │ │
-│  │ data/        │          │  ├── pages/              │ │
-│  └──────────────┘          │  ├── interactive/        │ │
-│                             │  ├── content/            │ │
-│                             │  ├── bridge/             │ │
-│                             │  ├── models/             │ │
-│                             │  ├── db/                 │ │
-│                             │  └── tests/              │ │
-│                             └──────────────────────────┘ │
-└─────────────────────────────────────────────────────────┘
+D:\stock_market
+│
+├── SPAS 系统 (不改动)          ←── Bridge 适配器 ──→   Investment Academy (新系统)
+│   ├── src/                     单向只读依赖            ├── app.py
+│   ├── config/                                         ├── pages/
+│   └── data/ (Parquet)                                  ├── interactive/
+│                                                        ├── content/
+│                                                        ├── bridge/
+│                                                        ├── models/
+│                                                        ├── db/
+│                                                        └── tests/
 ```
+
+> 投资学院**零侵入** SPAS。Bridge 层是唯一接触点，SPAS 完全不感知学院的存在。
 
 ### 2.2 分层架构
 
 ```
-┌────────────────────────────────────┐
-│  Pages 层                          │  编排层：组合内容和交互组件
-│  app.py, pages/*.py                │  不包含业务逻辑
-├────────────────────────────────────┤
-│  ↓                                │
-│  Interactive 层 + Content 层       │  并行层：
-│  interactive/*.py  content/*.{md,yaml}│  - Interactive：依赖于 Bridge
-│                                    │  - Content：零依赖纯数据
-├────────────────────────────────────┤
-│  ↓                                │
-│  Bridge 层                         │  适配器层：唯一 import SPAS 的地方
-│  bridge/*.py                       │  对外暴露稳定接口
-├────────────────────────────────────┤
-│  ↓                                │
-│  SPAS SDK (外部系统)                │  只读消费，零修改
-└────────────────────────────────────┘
+Pages 层           ← 编排，组合内容和交互组件
+  │
+  ├── Interactive 层  ← 交互组件，依赖 Bridge
+  ├── Content 层      ← 纯数据 (Markdown + YAML)，零依赖
+  │
+  └── Bridge 层       ← 适配器，唯一 import SPAS 的地方
+        │
+        └── SPAS SDK (外部系统，只读消费)
 ```
 
 ### 2.3 依赖规则
@@ -117,7 +104,7 @@ investment_academy/
 │   ├── content_loader.py         # Markdown + YAML 内容加载
 │   ├── quiz_widget.py            # 测验组件（单选/多选/判断）
 │   ├── kline_chart.py            # K线图组件 [待实现]
-│   ├── sandbox_engine.py         # 交易沙盒引擎 [待实现]
+│   ├── sandbox_engine.py         # 交易沙盒引擎 ✅
 │   ├── sentiment_viz.py          # 市场情绪可视化 [待实现]
 │   ├── psychology_checklist.py   # 交易心理自检清单 [待实现]
 │   └── progress_dashboard.py    # 学习进度仪表盘 [待实现]
@@ -271,7 +258,7 @@ P1(5章) → P2(5章) → P3(4章) → P4(5章) → P5(5章) → P6(6章) → P7
 | 📝 **测验系统** | 单选/多选/判断，即时判分 + 解析，SQLite 记录 | ✅ |
 | 📊 **ETF 数据探索器** | 选 ETF → 看 K 线图 → 叠加信号标注 | ✅ 基础版 |
 | 🔬 **特征实验室** | 调节参数观察特征变化 + 状态机可视化 | 📝 |
-| 🎮 **交易沙盒** | 历史数据回放 → 买卖决策 → 绩效追踪 | 📝 |
+| 🎮 **交易沙盒** | ETF选择 → 逐日OHLCV → 买卖决策 → 绩效报告 | ✅ |
 | 💬 **市场情绪可视化** | 情绪热力图、情绪-价格叠加图 | 📝 |
 | 🧠 **交易心理自检清单** | 心理问卷 → 风险等级（🟢🟡🔴） | 📝 |
 | 📊 **学习进度仪表盘** | 进度条、成绩趋势、徽章成就 | 📝 |
