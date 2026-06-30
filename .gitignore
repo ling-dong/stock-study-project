@@ -10,3 +10,4 @@ venv/
 *.parquet
 data/*.parquet
 .superpowers/
+investment_academy/db/academy.db

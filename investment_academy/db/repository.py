@@ -9,8 +9,10 @@ DB_PATH = os.path.join(DB_DIR, "academy.db")
 SCHEMA_PATH = os.path.join(DB_DIR, "schema.sql")
 
 
-def _get_conn(db_path: str = DB_PATH) -> sqlite3.Connection:
+def _get_conn(db_path: Optional[str] = None) -> sqlite3.Connection:
     """获取数据库连接并初始化 schema"""
+    if db_path is None:
+        db_path = DB_PATH
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     os.makedirs(os.path.dirname(db_path), exist_ok=True)
