@@ -793,31 +793,26 @@ def render_practice_track():
 
 
 def render_sandbox():
-    """交易沙盒 — 占位"""
-    st.markdown("### 🎮 交易沙盒")
-    st.markdown('<p style="color:#848E9C;margin-bottom:1rem;">零风险模拟真实交易环境</p>',
-                unsafe_allow_html=True)
-
-    # 带进度条的占位
-    st.markdown("""
-    <div class="track-card" style="cursor:default;">
-        <div class="tc-header">
-            <span class="tc-name">🚧 交易沙盒正在建设中</span>
-            <span class="tc-badge in-progress">开发中</span>
+    """交易沙盒 — 模拟交易页面"""
+    try:
+        from pages.sandbox import show as sandbox_show
+        sandbox_show()
+    except Exception as e:
+        st.error(f"加载交易沙盒失败: {e}")
+        st.markdown('<p style="color:#848E9C;margin-bottom:1rem;">零风险模拟真实交易环境</p>',
+                    unsafe_allow_html=True)
+        st.markdown("""
+        <div class="track-card" style="cursor:default;">
+            <div class="tc-header">
+                <span class="tc-name">🔄 交易沙盒加载中</span>
+                <span class="tc-badge in-progress">加载中</span>
+            </div>
+            <div style="margin-top:0.8rem;color:#848E9C;font-size:0.9rem;">
+                请确保所有依赖已安装（streamlit, plotly, pandas）。<br>
+                如果问题持续存在，请检查控制台输出。
+            </div>
         </div>
-        <div style="margin-top:0.8rem;color:#848E9C;font-size:0.9rem;">
-            完成后你将可以在这里用历史数据模拟真实交易决策，包括：<br>
-            • 实时 K线 图表与多时间框架分析<br>
-            • 自定义策略回测与绩效评估<br>
-            • 风险控制模块（止损 / 仓位管理）<br>
-            • 交易心理记录与复盘
-        </div>
-        <div class="tc-bar-wrap" style="margin-top:1rem;">
-            <div class="tc-bar-fill" style="width:35%;"></div>
-        </div>
-        <div style="margin-top:0.3rem;font-size:0.75rem;color:#5E6673;">总体进度 35%</div>
-    </div>
-    """, unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
 
 
 def render_progress():
