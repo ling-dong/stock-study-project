@@ -25,7 +25,7 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
-浏览器打开 `http://localhost:8501` 即可开始学习。
+浏览器打开 `http://localhost:8501` 即可开始学习。前后端分离前端用vue2.后端用简单的框架
 
 > 💡 **停止方法**：在终端中按 **`Ctrl + C`** 即可停止 Streamlit 服务器。
 
