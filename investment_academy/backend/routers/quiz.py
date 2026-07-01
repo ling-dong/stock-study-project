@@ -50,7 +50,7 @@ def _score_to_label(score: float) -> str:
 @router.post("/submit", response_model=QuizSubmitOut)
 def submit_quiz(body: QuizSubmitIn):
     """提交测验答案，返回评分 + 解析，并持久化结果"""
-    quiz_data = load_quiz(body.phase_id)
+    quiz_data = load_quiz(body.phase_id, body.chapter_id)
     if quiz_data is None:
         raise HTTPException(status_code=404, detail=f"测验不存在: {body.phase_id}")
 

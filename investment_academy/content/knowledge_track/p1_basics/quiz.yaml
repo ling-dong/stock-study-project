@@ -1,52 +1,265 @@
-chapter: p1_ch1
-questions:
-  - id: q1
-    type: single_choice
-    question: "股票代表的是什么？"
-    options:
-      - "公司债务"
-      - "公司所有权的一部分"
-      - "政府债券"
-      - "银行存款凭证"
-    answer: 1
-    explanation: "股票是股份公司发行的所有权凭证，持有股票意味着你拥有公司的一部分所有权。"
+chapters:
+  p1_ch1:
+    questions:
+      - id: q1
+        type: single_choice
+        question: "股票代表的是什么？"
+        options:
+          - "公司债务"
+          - "公司所有权的一部分"
+          - "政府债券"
+          - "银行存款凭证"
+        answer: 1
+        explanation: "股票是股份公司发行的所有权凭证，持有股票意味着你拥有公司的一部分所有权。"
 
-  - id: q2
-    type: single_choice
-    question: "我们日常'炒股'发生在哪个市场？"
-    options:
-      - "一级市场"
-      - "二级市场"
-      - "期货市场"
-      - "货币市场"
-    answer: 1
-    explanation: "一级市场是IPO发行市场，二级市场是投资者之间相互买卖的市场。我们说的炒股就是在二级市场。"
+      - id: q2
+        type: single_choice
+        question: "我们日常'炒股'发生在哪个市场？"
+        options:
+          - "一级市场"
+          - "二级市场"
+          - "期货市场"
+          - "货币市场"
+        answer: 1
+        explanation: "一级市场是IPO发行市场，二级市场是投资者之间相互买卖的市场。我们说的炒股就是在二级市场。"
 
-  - id: q3
-    type: single_choice
-    question: "以下哪个不是股东的权利？"
-    options:
-      - "分红权"
-      - "投票权"
-      - "无条件退款权"
-      - "知情权"
-    answer: 2
-    explanation: "股东享有分红权、投票权、知情权，但没有无条件退款权。股票投资是有风险的。"
+      - id: q3
+        type: single_choice
+        question: "以下哪个不是股东的权利？"
+        options:
+          - "分红权"
+          - "投票权"
+          - "无条件退款权"
+          - "知情权"
+        answer: 2
+        explanation: "股东享有分红权、投票权、知情权，但没有无条件退款权。股票投资是有风险的。"
 
-  - id: q4
-    type: true_false
-    question: "A股是以人民币计价、在中国内地上市交易的股票"
-    options: []
-    answer: true
-    explanation: "正确。A股的定义就是在内地注册、内地上市、人民币计价的股票。"
+      - id: q4
+        type: true_false
+        question: "A股是以人民币计价、在中国内地上市交易的股票"
+        options: []
+        answer: true
+        explanation: "正确。A股的定义就是在内地注册、内地上市、人民币计价的股票。"
 
-  - id: q5
-    type: single_choice
-    question: "IPO 是什么意思？"
-    options:
-      - "公司被收购"
-      - "公司首次公开发行股票"
-      - "公司退市"
-      - "公司分红"
-    answer: 1
-    explanation: "IPO (Initial Public Offering) 即首次公开发行，是公司第一次向公众出售股票。"
+      - id: q5
+        type: single_choice
+        question: "IPO 是什么意思？"
+        options:
+          - "公司被收购"
+          - "公司首次公开发行股票"
+          - "公司退市"
+          - "公司分红"
+        answer: 1
+        explanation: "IPO (Initial Public Offering) 即首次公开发行，是公司第一次向公众出售股票。"
+
+  p1_ch2:
+    questions:
+      - id: q1
+        type: single_choice
+        question: "ETF 全称是什么？"
+        options:
+          - "Electronic Trade Fund"
+          - "Exchange Traded Fund"
+          - "Equity Trust Fund"
+          - "External Trade Facility"
+        answer: 1
+        explanation: "ETF 全称 Exchange Traded Fund（交易所交易基金），是一种在交易所上市交易的基金产品。"
+
+      - id: q2
+        type: single_choice
+        question: "ETF 相比于个股最大的优势是什么？"
+        options:
+          - "保证盈利"
+          - "分散风险，一篮子股票"
+          - "没有手续费"
+          - "可以随时赎回"
+        answer: 1
+        explanation: "ETF 持有一篮子股票，天然分散了个股风险，解决了'选股难'的问题。"
+
+      - id: q3
+        type: single_choice
+        question: "512480.SH 是什么类型的 ETF？"
+        options:
+          - "沪深300 ETF"
+          - "半导体 ETF"
+          - "银行 ETF"
+          - "医药 ETF"
+        answer: 1
+        explanation: "512480.SH 是半导体ETF，跟踪半导体行业指数，适合看好芯片产业的投资者。"
+
+      - id: q4
+        type: true_false
+        question: "ETF 像股票一样在交易所实时交易，不是只在收盘后按净值申购"
+        options: []
+        answer: true
+        explanation: "正确。ETF 的独特之处在于它兼具基金和股票的特点——既有基金的一篮子分散特性，又能像股票一样盘中实时买卖。"
+
+      - id: q5
+        type: multi_choice
+        question: "以下哪些是 ETF 的特点？（多选）"
+        options:
+          - "分散投资"
+          - "交易灵活（盘中实时）"
+          - "费用较低"
+          - "保证本金安全"
+        answer: [0, 1, 2]
+        explanation: "ETF 具有分散投资、交易灵活、费用较低的优势，但任何投资都有风险，不保证本金安全。"
+
+  p1_ch3:
+    questions:
+      - id: q1
+        type: single_choice
+        question: "A股实行什么交易制度？"
+        options:
+          - "T+0"
+          - "T+1"
+          - "T+2"
+          - "T+3"
+        answer: 1
+        explanation: "A股实行T+1制度，即当日买入的股票最快次日才能卖出，这是A股区别于美股(T+0)的重要特征。"
+
+      - id: q2
+        type: single_choice
+        question: "A股主板股票的涨跌停幅度是多少？"
+        options:
+          - "±5%"
+          - "±10%"
+          - "±20%"
+          - "没有限制"
+        answer: 1
+        explanation: "主板股票涨跌停限制为±10%。科创板和创业板为±20%，北交所为±30%。"
+
+      - id: q3
+        type: true_false
+        question: "A股交易时间为周一至周五上午9:30-11:30，下午13:00-15:00"
+        options: []
+        answer: true
+        explanation: "正确。A股集合竞价时间为9:15-9:25，连续竞价上午9:30-11:30，下午13:00-15:00。"
+
+      - id: q4
+        type: single_choice
+        question: "A股的最小交易单位是多少？"
+        options:
+          - "1股"
+          - "10股"
+          - "100股（1手）"
+          - "1000股"
+        answer: 2
+        explanation: "A股以'手'为交易单位，1手=100股，买入必须是100股的整数倍。"
+
+      - id: q5
+        type: single_choice
+        question: "以下哪个费用不是A股交易中的实际成本？"
+        options:
+          - "印花税（卖出时）"
+          - "佣金"
+          - "过户费"
+          - "账户管理费"
+        answer: 3
+        explanation: "A股交易成本包括：印花税（卖出0.1%）、佣金（券商收取）、过户费。没有账户管理费。"
+
+  p1_ch4:
+    questions:
+      - id: q1
+        type: single_choice
+        question: "K线图中，实体部分代表什么？"
+        options:
+          - "当日成交量"
+          - "开盘价和收盘价之间的区域"
+          - "最高价和最低价之间的区域"
+          - "前一日收盘价"
+        answer: 1
+        explanation: "K线实体是开盘价和收盘价之间的矩形区域。阳线（收>开）通常为红色或绿色，阴线（收<开）为绿色或红色。"
+
+      - id: q2
+        type: single_choice
+        question: "K线图中，'上影线'代表什么？"
+        options:
+          - "当日最低价到开盘价"
+          - "当日最高价到收盘价"
+          - "收盘价到实体上沿的最高点"
+          - "实体上沿到当日最高价"
+        answer: 3
+        explanation: "上影线从实体上沿延伸到当日最高价，表示价格曾经冲高但最终回落，反映上方抛压。"
+
+      - id: q3
+        type: single_choice
+        question: "一根阳线（红色）表示什么？"
+        options:
+          - "开盘价 > 收盘价"
+          - "开盘价 < 收盘价"
+          - "最高价 > 最低价"
+          - "成交量放大"
+        answer: 1
+        explanation: "阳线表示收盘价高于开盘价，即买方力量占优，价格上涨。"
+
+      - id: q4
+        type: true_false
+        question: "K线图的时间框架可以是日线、60分钟线、5分钟线等不同周期"
+        options: []
+        answer: true
+        explanation: "正确。同一只股票可以有不同的K线周期：日线看趋势、60分钟线看日内结构、5分钟线看短线波动。"
+
+      - id: q5
+        type: single_choice
+        question: "十字星（Doji）K线代表什么含义？"
+        options:
+          - "市场大幅上涨"
+          - "市场大幅下跌"
+          - "开盘价≈收盘价，多空势均力敌"
+          - "成交量极度萎缩"
+        answer: 2
+        explanation: "十字星的特征是开盘价和收盘价非常接近，实体极小，表示买卖双方力量均衡，往往出现在趋势转折点。"
+
+  p1_ch5:
+    questions:
+      - id: q1
+        type: single_choice
+        question: "OHLCV 中的 'V' 代表什么？"
+        options:
+          - "Value（估值）"
+          - "Volume（成交量）"
+          - "Volatility（波动率）"
+          - "Velocity（速度）"
+        answer: 1
+        explanation: "OHLCV = Open(开盘), High(最高), Low(最低), Close(收盘), Volume(成交量)，是金融数据最基本的结构。"
+
+      - id: q2
+        type: single_choice
+        question: "'换手率'是指什么？"
+        options:
+          - "手续费占交易额的比例"
+          - "当日成交量占流通股本的比例"
+          - "涨跌幅"
+          - "公司换了CEO"
+        answer: 1
+        explanation: "换手率 = 当日成交量 / 流通股本。高换手率说明交易活跃，低换手率说明交易冷清。"
+
+      - id: q3
+        type: single_choice
+        question: "PE（市盈率）= 股价 / 每股收益，高PE通常意味着什么？"
+        options:
+          - "公司一定亏损"
+          - "市场对该公司的未来增长预期较高"
+          - "该股票一定会涨"
+          - "该股票没有投资价值"
+        answer: 1
+        explanation: "高PE不一定代表'贵'，它反映了市场对该公司未来盈利增长的乐观预期，但也可能是泡沫。"
+
+      - id: q4
+        type: single_choice
+        question: "'市值'的计算公式是？"
+        options:
+          - "股价 + 成交量"
+          - "股价 × 总股本"
+          - "股价 × 每股收益"
+          - "净利润 × PE"
+        answer: 1
+        explanation: "市值 = 股价 × 总股本，代表市场对该公司当前的整体估值。"
+
+      - id: q5
+        type: true_false
+        question: "成交量突然放大往往意味着市场对该股票的看法出现了分歧"
+        options: []
+        answer: true
+        explanation: "正确。成交量放大代表多空双方都在积极交易，往往是趋势变化的前兆。'天量见天价，地量见地价'是常见规律。"

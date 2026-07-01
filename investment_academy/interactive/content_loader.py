@@ -50,13 +50,27 @@ def load_chapter(phase_id: str, chapter_file: str) -> Optional[str]:
     return path.read_text(encoding="utf-8")
 
 
-def load_quiz(phase_id: str) -> Optional[dict]:
-    """加载测验配置"""
+def load_quiz(phase_id: str, chapter_id: str = None) -> Optional[dict]:
+    """加载测验配置
+
+    Args:
+        phase_id: 阶段 ID，如 'p1_basics'
+        chapter_id: 章节 ID，如 'p1_ch1'。不传则返回全部章节的测验
+    """
     path = CONTENT_ROOT / "knowledge_track" / phase_id / "quiz.yaml"
     if not path.exists():
         return None
     with open(path, "r", encoding="utf-8") as f:
-        return yaml.safe_load(f)
+        data = yaml.safe_load(f)
+
+    if chapter_id and data:
+        chapters = data.get("chapters", {})
+        chapter_data = chapters.get(chapter_id)
+        if chapter_data:
+            return {"chapter": chapter_id, "questions": chapter_data.get("questions", [])}
+        return None
+
+    return data
 
 
 def load_lab_guide(lab_id: str) -> Optional[str]:

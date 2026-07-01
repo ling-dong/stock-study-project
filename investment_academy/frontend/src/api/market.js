@@ -12,6 +12,6 @@ export function getETFName(code) {
   return api.get(`/market/etf/${code}/name`)
 }
 
-export function getETFOHLCV(code, tf = 'day', limit = 180) {
-  return api.get(`/market/etf/${code}/ohlcv`, { params: { tf, limit } })
+export function getETFOHLCV(code, tf = 'day', limit = 180, offset = -1) {
+  return api.get(`/market/etf/${code}/ohlcv`, { params: { tf, limit, offset } })
 }

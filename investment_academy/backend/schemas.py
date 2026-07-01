@@ -104,9 +104,11 @@ class SandboxInitIn(BaseModel):
     etf_code: str
     timeframe: str = "day"
     initial_cash: float = 100000.0
+    start_date: Optional[str] = None
 
 class SandboxInitOut(BaseModel):
     session_id: str
+    total_bars: int = 0
 
 class SandboxStateOut(BaseModel):
     session_id: str

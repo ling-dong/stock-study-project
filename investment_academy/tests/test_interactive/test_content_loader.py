@@ -25,16 +25,33 @@ def test_load_chapter_not_exists():
 
 
 def test_load_quiz():
+    """不传 chapter_id 时返回 chapters 字典"""
     quiz = load_quiz("p1_basics")
     assert quiz is not None
-    assert "questions" in quiz
-    assert len(quiz["questions"]) == 5
-    for q in quiz["questions"]:
+    assert "chapters" in quiz
+    assert "p1_ch1" in quiz["chapters"]
+    ch1 = quiz["chapters"]["p1_ch1"]
+    assert len(ch1["questions"]) == 5
+    for q in ch1["questions"]:
         assert "id" in q
         assert "type" in q
         assert "question" in q
         assert "answer" in q
         assert "explanation" in q
+
+
+def test_load_quiz_with_chapter_id():
+    """传 chapter_id 时返回单章测验"""
+    quiz = load_quiz("p1_basics", "p1_ch2")
+    assert quiz is not None
+    assert quiz["chapter"] == "p1_ch2"
+    assert len(quiz["questions"]) == 5
+
+
+def test_load_quiz_nonexistent():
+    """不存在的阶段"""
+    quiz = load_quiz("nonexistent")
+    assert quiz is None
 
 
 def test_list_labs():

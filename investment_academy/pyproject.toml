@@ -8,6 +8,8 @@ dependencies = [
     "plotly>=5.17",
     "pandas>=2.0",
     "pyyaml>=6.0",
+    "fastapi>=0.100",
+    "uvicorn[standard]>=0.30",
 ]
 
 [project.optional-dependencies]

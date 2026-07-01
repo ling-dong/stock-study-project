@@ -39,14 +39,23 @@ def get_etf_ohlcv(
     code: str,
     tf: str = Query("day", alias="tf"),
     limit: int = Query(180, ge=1, le=2000),
+    offset: int = Query(-1, ge=-1, le=100000),
 ):
-    """ETF OHLCV 数据（K线图用）"""
+    """ETF OHLCV 数据（K线图用）
+
+    offset=-1: 取最后 limit 条（默认，用于数据浏览器预览）
+    offset=0:  取前 limit 条（用于沙盒从头模拟）
+    offset=N:  从第 N 条开始取 limit 条
+    """
     df = load_etf_data(code, tf)
     if df is None:
         raise HTTPException(status_code=404, detail=f"ETF 数据不存在: {code}")
 
-    # 取最近 N 条
-    df = df.tail(limit)
+    # 按 offset 切片
+    if offset >= 0:
+        df = df.iloc[offset:offset + limit]
+    else:
+        df = df.tail(limit)
 
     # DataFrame → JSON
     bars = []

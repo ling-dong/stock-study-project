@@ -11,7 +11,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime
 
-from backend.routers import content, quiz, progress, market, sandbox, user
+from backend.routers import content, quiz, progress, market, sandbox, user, knowledge
 
 app = FastAPI(
     title="投资学院 API",
@@ -35,6 +35,7 @@ app.include_router(progress.router, tags=["学习进度"])
 app.include_router(market.router, tags=["市场数据"])
 app.include_router(sandbox.router, tags=["交易沙盒"])
 app.include_router(user.router, tags=["用户系统"])
+app.include_router(knowledge.router, tags=["投资知识"])
 
 
 @app.get("/api/health")

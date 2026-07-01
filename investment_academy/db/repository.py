@@ -174,3 +174,45 @@ def get_journal_entries(limit: int = 50) -> list[dict]:
     ).fetchall()
     conn.close()
     return [dict(r) for r in rows]
+
+
+def get_journal_entry(entry_id: int) -> Optional[dict]:
+    conn = _get_conn()
+    row = conn.execute(
+        "SELECT * FROM trading_journal WHERE id = ?", (entry_id,)
+    ).fetchone()
+    conn.close()
+    return dict(row) if row else None
+
+
+def update_journal_entry(entry_id: int, entry: dict) -> bool:
+    conn = _get_conn()
+    cursor = conn.execute("""
+        UPDATE trading_journal
+        SET date = ?, setup_type = ?, entry_reason = ?, exit_reason = ?,
+            pnl_pct = ?, emotional_state = ?, lesson_learned = ?, mistake_flag = ?
+        WHERE id = ?
+    """, (
+        entry.get("date", ""),
+        entry.get("setup_type", ""),
+        entry.get("entry_reason", ""),
+        entry.get("exit_reason", ""),
+        entry.get("pnl_pct", 0.0),
+        entry.get("emotional_state", ""),
+        entry.get("lesson_learned", ""),
+        int(entry.get("mistake_flag", False)),
+        entry_id,
+    ))
+    conn.commit()
+    updated = cursor.rowcount > 0
+    conn.close()
+    return updated
+
+
+def delete_journal_entry(entry_id: int) -> bool:
+    conn = _get_conn()
+    cursor = conn.execute("DELETE FROM trading_journal WHERE id = ?", (entry_id,))
+    conn.commit()
+    deleted = cursor.rowcount > 0
+    conn.close()
+    return deleted

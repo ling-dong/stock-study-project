@@ -1,7 +1,7 @@
 import api from './index'
 
-export function sandboxInit(etfCode, timeframe = 'day', initialCash = 100000) {
-  return api.post('/sandbox/init', { etf_code: etfCode, timeframe, initial_cash: initialCash })
+export function sandboxInit(etfCode, timeframe = 'day', initialCash = 100000, startDate = null) {
+  return api.post('/sandbox/init', { etf_code: etfCode, timeframe, initial_cash: initialCash, start_date: startDate })
 }
 
 export function getSandboxState(sid) {

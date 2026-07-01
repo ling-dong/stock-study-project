@@ -112,18 +112,14 @@ export default {
         // 加载章节内容和测验
         const [contentRes, quizRes] = await Promise.allSettled([
           getChapter(this.phaseId, ch.file),
-          getQuiz(this.phaseId),
+          getQuiz(this.phaseId, ch.id),
         ])
 
         if (contentRes.status === 'fulfilled') {
           this.chapterContent = contentRes.value.data.content
         }
         if (quizRes.status === 'fulfilled' && quizRes.value.data) {
-          const quiz = quizRes.value.data
-          // 只显示当前章节的测验
-          if (quiz.chapter === ch.id) {
-            this.quizData = quiz
-          }
+          this.quizData = quizRes.value.data
         }
       } catch (e) {
         console.error('加载章节失败:', e)

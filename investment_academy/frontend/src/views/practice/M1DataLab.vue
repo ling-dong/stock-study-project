@@ -70,6 +70,36 @@
       <p class="chart-info">共 {{ bars.length }} 条数据 · {{ timeframe === 'day' ? '最近180天' : '最近300条' }}</p>
     </div>
     <div v-else-if="loadingChart" class="loading">加载图表数据…</div>
+
+    <!-- 原始数据表格 -->
+    <div v-if="rawData.length" class="raw-data-section">
+      <h3>📋 原始数据（最近 30 条）</h3>
+      <div class="data-table-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>日期</th>
+              <th>开盘</th>
+              <th>最高</th>
+              <th>最低</th>
+              <th>收盘</th>
+              <th>成交量</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(row, i) in rawData" :key="i"
+                :class="{ 'row-up': row.close >= row.open, 'row-down': row.close < row.open }">
+              <td>{{ row.date }}</td>
+              <td>{{ row.open?.toFixed(2) }}</td>
+              <td>{{ row.high?.toFixed(2) }}</td>
+              <td>{{ row.low?.toFixed(2) }}</td>
+              <td>{{ row.close?.toFixed(2) }}</td>
+              <td>{{ formatVolume(row.volume) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -94,6 +124,7 @@ export default {
       selectedETF: '',
       timeframe: 'day',
       bars: [],
+      rawData: [],
       loadingChart: false,
     }
   },
@@ -115,7 +146,7 @@ export default {
         for (const etf of this.etfList) {
           try {
             const nameRes = await getETFName(etf.code)
-            this.etfNameMap[etf.code] = nameRes.data.display_name
+            this.$set(this.etfNameMap, etf.code, nameRes.data.display_name)
           } catch (e) { /* ignore */ }
         }
         this.loadChart()
@@ -134,15 +165,25 @@ export default {
       if (!this.selectedETF) return
       this.loadingChart = true
       this.bars = []
+      this.rawData = []
       try {
         const limit = this.timeframe === 'day' ? 180 : 300
         const res = await getETFOHLCV(this.selectedETF, this.timeframe, limit)
-        this.bars = res.data.bars || []
+        const allBars = res.data.bars || []
+        this.bars = allBars
+        // 取最后 30 条作为原始数据展示
+        this.rawData = allBars.slice(-30).reverse()
       } catch (e) {
         console.error('加载图表数据失败:', e)
       } finally {
         this.loadingChart = false
       }
+    },
+    formatVolume(v) {
+      if (!v) return '0'
+      if (v >= 1e8) return (v / 1e8).toFixed(2) + '亿'
+      if (v >= 1e4) return (v / 1e4).toFixed(1) + '万'
+      return v.toLocaleString()
     },
   },
 }
@@ -270,5 +311,22 @@ export default {
   padding: 2rem;
   text-align: center;
   color: #6B6B7B;
+}
+
+.raw-data-section {
+  margin-top: 1.5rem;
+}
+
+.raw-data-section h3 {
+  font-size: 1rem;
+  margin-bottom: 0.6rem;
+}
+
+.row-up {
+  background: #0A2E0A11;
+}
+
+.row-down {
+  background: #2E0A0A11;
 }
 </style>

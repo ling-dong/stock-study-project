@@ -8,6 +8,9 @@ from db.repository import (
     get_psychology_history,
     save_journal_entry,
     get_journal_entries,
+    get_journal_entry,
+    update_journal_entry,
+    delete_journal_entry,
 )
 from backend.schemas import (
     UserPreferencesIn,
@@ -74,3 +77,25 @@ def add_journal_entry(body: TradingJournalIn):
 def list_journal():
     """交易日志列表"""
     return get_journal_entries()
+
+
+@router.put("/journal/{entry_id}")
+def edit_journal_entry(entry_id: int, body: TradingJournalIn):
+    """编辑交易日志"""
+    existing = get_journal_entry(entry_id)
+    if existing is None:
+        raise HTTPException(status_code=404, detail="日志不存在")
+    ok = update_journal_entry(entry_id, body.model_dump())
+    if not ok:
+        raise HTTPException(status_code=500, detail="更新失败")
+    return get_journal_entry(entry_id)
+
+
+@router.delete("/journal/{entry_id}")
+def remove_journal_entry(entry_id: int):
+    """删除交易日志"""
+    existing = get_journal_entry(entry_id)
+    if existing is None:
+        raise HTTPException(status_code=404, detail="日志不存在")
+    delete_journal_entry(entry_id)
+    return {"deleted": True}

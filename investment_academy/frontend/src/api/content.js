@@ -12,8 +12,9 @@ export function getChapter(phaseId, filename) {
   return api.get(`/content/chapter/${phaseId}/${filename}`)
 }
 
-export function getQuiz(phaseId) {
-  return api.get(`/content/quiz/${phaseId}`)
+export function getQuiz(phaseId, chapterId = null) {
+  const params = chapterId ? { chapter_id: chapterId } : {}
+  return api.get(`/content/quiz/${phaseId}`, { params })
 }
 
 export function getLab(labId) {

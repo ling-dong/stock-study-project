@@ -139,6 +139,9 @@ class SandboxEngine:
         if shares <= 0:
             return None
 
+        if shares % 100 != 0:
+            return None
+
         bar = self.current_bar
         price = bar["close"] * (1 + self.SLIPPAGE)
         amount = price * shares

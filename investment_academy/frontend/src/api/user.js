@@ -23,3 +23,11 @@ export function addJournalEntry(data) {
 export function getJournal() {
   return api.get('/user/journal')
 }
+
+export function updateJournalEntry(id, data) {
+  return api.put(`/user/journal/${id}`, data)
+}
+
+export function deleteJournalEntry(id) {
+  return api.delete(`/user/journal/${id}`)
+}

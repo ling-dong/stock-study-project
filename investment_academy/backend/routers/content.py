@@ -30,9 +30,9 @@ def get_chapter(phase_id: str, filename: str):
 
 
 @router.get("/quiz/{phase_id}")
-def get_quiz(phase_id: str):
+def get_quiz(phase_id: str, chapter_id: str = None):
     """加载测验配置"""
-    data = load_quiz(phase_id)
+    data = load_quiz(phase_id, chapter_id)
     if data is None:
         raise HTTPException(status_code=404, detail=f"测验不存在: {phase_id}")
     return data

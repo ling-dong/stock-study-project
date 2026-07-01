@@ -33,6 +33,23 @@
           <span class="nav-label">{{ formatLabLabel(lab.id) }}</span>
           <span class="nav-status" v-if="lab.has_guide">📖</span>
         </router-link>
+
+        <div class="nav-section-title">🛠️ 工具箱</div>
+        <router-link to="/sandbox" class="nav-item" active-class="nav-item--active">
+          <span class="nav-label">🎮 交易沙盒</span>
+        </router-link>
+        <router-link to="/psychology" class="nav-item" active-class="nav-item--active">
+          <span class="nav-label">🧠 心理自检</span>
+        </router-link>
+        <router-link to="/journal" class="nav-item" active-class="nav-item--active">
+          <span class="nav-label">📓 交易日志</span>
+        </router-link>
+        <router-link to="/progress" class="nav-item" active-class="nav-item--active">
+          <span class="nav-label">📊 进度仪表盘</span>
+        </router-link>
+        <router-link to="/market-overview" class="nav-item" active-class="nav-item--active">
+          <span class="nav-label">🏦 市场概览</span>
+        </router-link>
       </nav>
 
       <div class="sidebar-footer">

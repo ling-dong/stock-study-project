@@ -10,6 +10,9 @@ from .repository import (
     get_psychology_history,
     save_journal_entry,
     get_journal_entries,
+    get_journal_entry,
+    update_journal_entry,
+    delete_journal_entry,
 )
 
 __all__ = [
@@ -24,4 +27,7 @@ __all__ = [
     "get_psychology_history",
     "save_journal_entry",
     "get_journal_entries",
+    "get_journal_entry",
+    "update_journal_entry",
+    "delete_journal_entry",
 ]

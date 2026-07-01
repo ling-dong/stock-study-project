@@ -23,13 +23,20 @@ def sandbox_init(body: SandboxInitIn):
     if df is None or len(df) == 0:
         raise HTTPException(status_code=404, detail=f"ETF 数据不存在: {body.etf_code}")
 
+    # 按起始日期过滤
+    if body.start_date and "trade_date" in df.columns:
+        df = df[df["trade_date"] >= body.start_date]
+        if len(df) == 0:
+            raise HTTPException(status_code=400, detail=f"起始日期 {body.start_date} 之后无数据")
+        df = df.reset_index(drop=True)
+
     engine = SandboxEngine(df, initial_cash=body.initial_cash)
     session_id = uuid.uuid4().hex[:12]
 
     with _lock:
         _sessions[session_id] = engine
 
-    return {"session_id": session_id}
+    return {"session_id": session_id, "total_bars": len(df)}
 
 
 def _get_engine(session_id: str) -> SandboxEngine:
