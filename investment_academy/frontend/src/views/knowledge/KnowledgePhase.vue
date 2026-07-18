@@ -1,60 +1,55 @@
 <template>
-  <div class="knowledge-page">
-    <!-- Breadcrumb -->
-    <div class="breadcrumb">
-      <router-link to="/">首页</router-link>
-      <span> / </span>
-      <span>P1 股市基础</span>
-      <span v-if="currentChapter"> / </span>
-      <span v-if="currentChapter"><strong>{{ currentChapter.title }}</strong></span>
+  <div class="knowledge-page ia-page">
+    <IAPageHeader
+      :title="phaseTitle"
+      :subtitle="phaseDesc"
+      :breadcrumbs="[{ label: '首页', to: '/' }, { label: '知识轨道' }, { label: phaseTitle }]"
+    />
+
+    <div v-if="loadingChapters" class="ia-loading">
+      <IAIcon name="spinner" size="lg" class="ia-anim-spin" />
+      <p>加载章节列表…</p>
     </div>
 
-    <h1>📚 {{ phaseTitle }}</h1>
-    <p class="phase-desc">{{ phaseDesc }}</p>
+    <template v-else>
+      <div v-if="chapters.length" class="chapter-tabs">
+        <button
+          v-for="ch in chapters" :key="ch.id"
+          class="tab-btn"
+          :class="{ 'tab-btn--active': activeChapter === ch.id, 'tab-btn--done': chapterDone(ch.id) }"
+          @click="selectChapter(ch)"
+        >
+          {{ ch.title || ch.file }}
+          <IAIcon v-if="chapterDone(ch.id)" name="check" size="xs" />
+        </button>
+      </div>
 
-    <!-- 章节导航 Tab -->
-    <div class="chapter-tabs">
-      <button
-        v-for="ch in chapters" :key="ch.id"
-        class="tab-btn"
-        :class="{
-          'tab-btn--active': activeChapter === ch.id,
-          'tab-btn--done': chapterDone(ch.id),
-        }"
-        @click="selectChapter(ch)"
-      >
-        {{ ch.title || ch.file }}
-        <span v-if="chapterDone(ch.id)" class="tab-check">✓</span>
-      </button>
-    </div>
+      <IAPanel v-if="loadingContent" loading title="加载章节中" />
 
-    <!-- 加载中 -->
-    <div v-if="loadingChapters" class="loading">加载章节列表…</div>
+      <div v-else-if="chapterContent" class="chapter-body">
+        <IAPanel :title="currentChapter?.title || '章节内容'" icon="book">
+          <MarkdownViewer :content="chapterContent" />
+        </IAPanel>
 
-    <div v-else-if="loadingContent" class="loading">加载中…</div>
+        <QuizWidget
+          v-if="quizData"
+          :questions="quizData.questions"
+          :phaseId="phaseId"
+          :chapterId="currentChapter ? currentChapter.id : ''"
+          @quiz-result="onQuizResult"
+        />
+      </div>
 
-    <!-- 章节内容 -->
-    <div v-else-if="chapterContent" class="chapter-body">
-      <MarkdownViewer :content="chapterContent" />
-
-      <!-- 测验 -->
-      <QuizWidget
-        v-if="quizData"
-        :questions="quizData.questions"
-        :phaseId="phaseId"
-        :chapterId="currentChapter ? currentChapter.id : ''"
-        @quiz-result="onQuizResult"
-      />
-    </div>
-
-    <!-- 无内容 -->
-    <div v-else class="empty-state">
-      <p>📝 该章节内容正在编写中…</p>
-    </div>
+      <div v-else class="ia-empty">
+        <IAIcon name="book" size="xl" class="ia-empty__icon" />
+        <p>该章节内容正在编写中…</p>
+      </div>
+    </template>
   </div>
 </template>
 
 <script>
+import { IAPageHeader, IAPanel, IAIcon } from '../../components/ui'
 import { getChapter, getQuiz, getChapters } from '../../api/content'
 import { getProgress } from '../../api/progress'
 import MarkdownViewer from '../../components/MarkdownViewer.vue'
@@ -77,12 +72,8 @@ const PHASE_DESCS = {
 }
 
 export default {
-  name: 'P1Basics',
-  components: { MarkdownViewer, QuizWidget },
-  created() {
-    this.PHASE_LABELS = PHASE_LABELS
-    this.PHASE_DESCS = PHASE_DESCS
-  },
+  name: 'KnowledgePhase',
+  components: { IAPageHeader, IAPanel, IAIcon, MarkdownViewer, QuizWidget },
   props: {
     phaseId: { type: String, default: 'p1_basics' },
   },
@@ -99,12 +90,8 @@ export default {
     }
   },
   computed: {
-    phaseTitle() {
-      return this.PHASE_LABELS[this.phaseId] || this.phaseId
-    },
-    phaseDesc() {
-      return this.PHASE_DESCS[this.phaseId] || ''
-    },
+    phaseTitle() { return PHASE_LABELS[this.phaseId] || this.phaseId },
+    phaseDesc() { return PHASE_DESCS[this.phaseId] || '' },
   },
   watch: {
     phaseId: {
@@ -122,8 +109,7 @@ export default {
       await this.loadProgress()
       try {
         const res = await getChapters(this.phaseId)
-        const rawChapters = res.data || []
-        this.chapters = rawChapters
+        this.chapters = res.data || []
         if (this.chapters.length) {
           this.currentChapter = this.chapters[0]
           this.activeChapter = this.chapters[0].id
@@ -135,9 +121,7 @@ export default {
         this.loadingChapters = false
       }
     },
-    chapterDone(id) {
-      return this.progressMap[id]?.completed
-    },
+    chapterDone(id) { return this.progressMap[id]?.completed },
     async loadProgress() {
       try {
         const res = await getProgress()
@@ -154,14 +138,11 @@ export default {
       this.chapterContent = null
       this.quizData = null
       this.loadingContent = true
-
       try {
-        // 加载章节内容和测验
         const [contentRes, quizRes] = await Promise.allSettled([
           getChapter(this.phaseId, ch.file),
           getQuiz(this.phaseId, ch.id),
         ])
-
         if (contentRes.status === 'fulfilled') {
           this.chapterContent = contentRes.value.data.content
         }
@@ -174,95 +155,57 @@ export default {
         this.loadingContent = false
       }
     },
-    async onQuizResult({ passed, score }) {
-      // 测验完成后刷新进度
+    async onQuizResult() {
       await this.loadProgress()
-      // 如果通过，显示完成标记
-      if (passed && this.currentChapter) {
-        this.$forceUpdate()
-      }
     },
   },
 }
 </script>
 
 <style scoped>
-.phase-desc {
-  font-size: 0.9rem;
-  color: #6B6B7B;
-  margin-bottom: 1.5rem;
-}
-
-.breadcrumb {
-  font-size: 0.78rem;
-  color: #6B6B7B;
-  margin-bottom: 1.2rem;
-  letter-spacing: 0.05em;
-}
-
-.breadcrumb span {
-  color: #F0B90B;
-}
-
-.breadcrumb a {
-  color: #6B6B7B;
-  text-decoration: none;
-}
-
-.breadcrumb strong {
-  color: #F5F0E0;
-}
-
 .chapter-tabs {
   display: flex;
   gap: 0.4rem;
-  margin-bottom: 1.8rem;
+  margin-bottom: var(--ia-space-lg);
   flex-wrap: wrap;
 }
 
 .tab-btn {
-  padding: 0.4rem 0.9rem;
-  background: #0D0D10;
-  border: 1px solid #151518;
-  border-radius: 6px;
-  color: #A0A0A8;
-  font-size: 0.82rem;
-  cursor: pointer;
-  transition: all 0.2s;
   display: flex;
   align-items: center;
   gap: 0.3rem;
+  padding: 0.5rem 0.9rem;
+  background: var(--ia-surface);
+  border: 1px solid var(--ia-border);
+  border-radius: var(--ia-radius-xs);
+  color: var(--ia-text-secondary);
+  font-size: var(--ia-font-size-sm);
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
 .tab-btn:hover {
-  background: #141417;
-  color: #E8E6E3;
+  background: var(--ia-surface-hover);
+  color: var(--ia-text);
 }
 
 .tab-btn--active {
-  background: #F0B90B15;
-  border-color: #F0B90B44;
-  color: #F0B90B;
+  background: var(--ia-gold-soft);
+  border-color: rgba(240, 185, 11, 0.25);
+  color: var(--ia-gold);
 }
 
 .tab-btn--done {
-  border-color: #16653455;
+  border-color: rgba(14, 203, 129, 0.25);
 }
 
-.tab-check {
-  font-size: 0.7rem;
-  color: #4ADE80;
+.tab-btn--done svg {
+  color: var(--ia-green);
 }
 
-.loading {
-  padding: 3rem;
-  text-align: center;
-  color: #6B6B7B;
-}
-
-.empty-state {
-  padding: 3rem;
-  text-align: center;
-  color: #6B6B7B;
+.chapter-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ia-space-md);
 }
 </style>

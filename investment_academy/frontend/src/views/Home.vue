@@ -1,74 +1,53 @@
 <template>
-  <div class="home">
-    <div class="hero">
-      <div class="hero-eyebrow">INVESTMENT ACADEMY</div>
-      <h1 class="hero-title">从零基础<br>到投资大拿</h1>
-      <p class="hero-sub">
-        基于真实 A 股 ETF 数据 · 理论实战双轨并行 · 完全本地运行
-      </p>
+  <div class="home ia-page">
+    <IAPageHeader
+      title="投资学院"
+      title-highlight="Investment Academy"
+      subtitle="基于真实 A 股 ETF 数据 · 理论实战双轨并行 · 完全本地运行"
+      :breadcrumbs="[{ label: '首页' }]"
+    />
+
+    <div class="ia-metric-grid">
+      <IAMetricCard label="已完成章节" :value="progressStats.completed" unit="章" trend="up" />
+      <IAMetricCard label="课程章节" :value="progressStats.total" unit="章" />
+      <IAMetricCard label="学习进度" :value="progressStats.pct" unit="%" trend="up" />
+      <IAMetricCard label="可用 ETF" :value="etfCount" unit="只" />
     </div>
 
-    <div class="metrics-row">
-      <div class="m-card">
-        <div class="m-value">{{ progressStats.completed }}</div>
-        <div class="m-label">已完成章节</div>
-      </div>
-      <div class="m-card">
-        <div class="m-value">{{ progressStats.total }}</div>
-        <div class="m-label">课程章节</div>
-      </div>
-      <div class="m-card">
-        <div class="m-value">{{ progressStats.pct }}%</div>
-        <div class="m-label">学习进度</div>
-      </div>
-      <div class="m-card">
-        <div class="m-value">{{ etfCount }}</div>
-        <div class="m-label">可用 ETF</div>
-      </div>
-    </div>
+    <div class="ia-divider"></div>
 
-    <div class="divider"></div>
-
-    <div class="section-hd">
-      <h2>📚 知识轨道</h2>
-      <p>系统学习投资理论，从基础概念到完整交易系统</p>
-    </div>
-
+    <IASectionTitle icon="book" title="知识轨道" subtitle="系统学习投资理论，从基础概念到完整交易系统" />
     <div class="card-grid">
       <router-link
         v-for="p in phases" :key="p.id"
         :to="`/knowledge/${p.id}`"
-        class="p-card"
+        class="track-card"
       >
-        <div class="p-num">{{ formatPhaseId(p.id) }}</div>
-        <div class="p-name">{{ formatPhaseLabel(p.id) }}</div>
-        <div class="p-desc">{{ formatPhaseDesc(p.id) }}</div>
-        <div class="p-meta">
-          <span class="p-count">{{ p.chapter_count }} 章{{ p.has_quiz ? ' + 测验' : '' }}</span>
-          <span class="p-badge p-badge--ready">可学习</span>
+        <div class="track-num">{{ formatPhaseId(p.id) }}</div>
+        <div class="track-name">{{ formatPhaseLabel(p.id) }}</div>
+        <div class="track-desc">{{ formatPhaseDesc(p.id) }}</div>
+        <div class="track-meta">
+          <IABadge variant="neutral">{{ p.chapter_count }} 章</IABadge>
+          <IABadge v-if="p.has_quiz" variant="gold">含测验</IABadge>
         </div>
       </router-link>
     </div>
 
-    <div class="divider"></div>
+    <div class="ia-divider"></div>
 
-    <div class="section-hd">
-      <h2>🔬 实践轨道</h2>
-      <p>动手操作，用真实市场数据检验你的理解</p>
-    </div>
-
+    <IASectionTitle icon="lab" title="实践轨道" subtitle="动手操作，用真实市场数据检验你的理解" />
     <div class="card-grid">
       <router-link
         v-for="lab in labs" :key="lab.id"
         :to="`/practice/${lab.id}`"
-        class="p-card"
+        class="track-card"
       >
-        <div class="p-num">{{ formatLabId(lab.id) }}</div>
-        <div class="p-name">{{ formatLabLabel(lab.id) }}</div>
-        <div class="p-desc">{{ formatLabDesc(lab.id) }}</div>
-        <div class="p-meta">
-          <span class="p-count">{{ lab.has_guide ? '📖 实验指南' : '' }}</span>
-          <span class="p-badge p-badge--ready">可实验</span>
+        <div class="track-num">{{ formatLabId(lab.id) }}</div>
+        <div class="track-name">{{ formatLabLabel(lab.id) }}</div>
+        <div class="track-desc">{{ formatLabDesc(lab.id) }}</div>
+        <div class="track-meta">
+          <IABadge v-if="lab.has_guide" variant="green">实验指南</IABadge>
+          <IABadge variant="neutral">可实验</IABadge>
         </div>
       </router-link>
     </div>
@@ -76,12 +55,14 @@
 </template>
 
 <script>
+import { IAPageHeader, IAMetricCard, IASectionTitle, IABadge } from '../components/ui'
 import { getPhases, getLabs } from '../api/content'
 import { getProgress } from '../api/progress'
 import { getETFs } from '../api/market'
 
 export default {
   name: 'Home',
+  components: { IAPageHeader, IAMetricCard, IASectionTitle, IABadge },
   data() {
     return {
       phases: [],
@@ -108,15 +89,12 @@ export default {
     }
   },
   methods: {
-    formatPhaseId(id) { return (id.match(/p(\d+)/) || [])[0]?.toUpperCase() || id; },
+    formatPhaseId(id) { return (id.match(/p(\d+)/) || [])[0]?.toUpperCase() || id },
     formatPhaseLabel(id) {
       const map = {
-        p1_basics: '股市基础',
-        p2_technical: '技术分析入门',
-        p3_sectors: '板块与产业链',
-        p4_quant: '量化策略思维',
-        p5_risk: '风险管理',
-        p6_psychology: '交易心理与情绪',
+        p1_basics: '股市基础', p2_technical: '技术分析入门',
+        p3_sectors: '板块与产业链', p4_quant: '量化策略思维',
+        p5_risk: '风险管理', p6_psychology: '交易心理与情绪',
         p7_integration: '实战整合',
       }
       return map[id] || id
@@ -133,12 +111,9 @@ export default {
       }
       return map[id] || ''
     },
-    formatLabId(id) { return (id.match(/m(\d+)/) || [])[0]?.toUpperCase() || id; },
+    formatLabId(id) { return (id.match(/m(\d+)/) || [])[0]?.toUpperCase() || id },
     formatLabLabel(id) {
-      const map = {
-        m1_data_lab: '数据勘探实验室',
-        m2_feature_lab: '特征工程实验室',
-      }
+      const map = { m1_data_lab: '数据勘探实验室', m2_feature_lab: '特征工程实验室' }
       return map[id] || id
     },
     formatLabDesc(id) {
@@ -153,144 +128,63 @@ export default {
 </script>
 
 <style scoped>
-.hero {
-  margin: 1rem 0 2.5rem;
-}
-
-.hero-eyebrow {
-  font-size: 0.65rem;
-  letter-spacing: 0.3em;
-  color: #6B6B7B;
-  margin-bottom: 0.5rem;
-}
-
-.hero-title {
-  font-size: 2.8rem;
-  font-weight: 200;
-  color: #F5F0E0;
-  line-height: 1.15;
-  margin-bottom: 0.5rem;
-}
-
-.hero-sub {
-  font-size: 0.95rem;
-  color: #6B6B7B;
-  max-width: 480px;
-}
-
-.metrics-row {
-  display: flex;
-  gap: 1.2rem;
-  margin: 1.5rem 0;
-}
-
-.m-card {
-  flex: 1;
-  background: #0D0D10;
-  border: 1px solid #1A1A1D;
-  border-radius: 10px;
-  padding: 1.3rem;
-  transition: border-color 0.3s, box-shadow 0.3s;
-}
-
-.m-card:hover {
-  border-color: #F0B90B33;
-  box-shadow: 0 0 20px #F0B90B08;
-}
-
-.m-value {
-  font-size: 2rem;
-  font-weight: 300;
-  color: #F5F0E0;
-  margin-bottom: 0.2rem;
-}
-
-.m-label {
-  font-size: 0.75rem;
-  color: #6B6B7B;
-  letter-spacing: 0.08em;
-}
-
-.section-hd {
-  margin-bottom: 1.2rem;
-}
-
-.section-hd h2 {
-  font-size: 1.3rem;
-  margin-bottom: 0.2rem;
-}
-
-.section-hd p {
-  font-size: 0.82rem;
-  color: #6B6B7B;
-  margin: 0;
+.home {
+  padding-top: var(--ia-space-md);
 }
 
 .card-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 0.9rem;
+  gap: var(--ia-space-md);
 }
 
-.p-card {
-  background: #0D0D10;
-  border: 1px solid #151518;
-  border-radius: 10px;
-  padding: 1.3rem;
+.track-card {
+  background: var(--ia-surface);
+  border: 1px solid var(--ia-border);
+  border-radius: var(--ia-radius);
+  padding: var(--ia-space-lg);
   cursor: pointer;
-  transition: all 0.25s;
+  transition: all 0.25s ease;
   text-decoration: none;
-  display: block;
-}
-
-.p-card:hover {
-  border-color: #F0B90B44;
-  box-shadow: 0 0 24px #F0B90B06;
-  transform: translateY(-2px);
-}
-
-.p-num {
-  font-size: 0.65rem;
-  color: #F0B90B;
-  letter-spacing: 0.15em;
-  margin-bottom: 0.4rem;
-}
-
-.p-name {
-  font-size: 1.05rem;
-  font-weight: 400;
-  color: #F5F0E0;
-  margin-bottom: 0.3rem;
-}
-
-.p-desc {
-  font-size: 0.78rem;
-  color: #6B6B7B;
-  margin-bottom: 0.8rem;
-  line-height: 1.5;
-}
-
-.p-meta {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  min-height: 160px;
+}
+
+.track-card:hover {
+  border-color: var(--ia-gold);
+  box-shadow: var(--ia-glow-gold);
+  transform: translateY(-3px);
+}
+
+.track-num {
+  font-size: var(--ia-font-size-xs);
+  color: var(--ia-gold);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: var(--ia-space-sm);
+  font-weight: 600;
+}
+
+.track-name {
+  font-size: var(--ia-font-size-lg);
+  color: var(--ia-text);
+  font-weight: 500;
+  margin-bottom: var(--ia-space-sm);
+}
+
+.track-desc {
+  font-size: var(--ia-font-size-sm);
+  color: var(--ia-text-secondary);
+  line-height: 1.6;
+  margin-bottom: var(--ia-space-md);
+  flex: 1;
+}
+
+.track-meta {
+  display: flex;
+  gap: var(--ia-space-sm);
   align-items: center;
-}
-
-.p-count {
-  font-size: 0.72rem;
-  color: #4A4A55;
-}
-
-.p-badge {
-  font-size: 0.68rem;
-  padding: 0.2rem 0.5rem;
-  border-radius: 4px;
-  letter-spacing: 0.05em;
-}
-
-.p-badge--ready {
-  background: #0A2E0A;
-  color: #4ADE80;
-  border: 1px solid #166534;
+  flex-wrap: wrap;
 }
 </style>

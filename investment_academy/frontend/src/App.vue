@@ -1,66 +1,96 @@
 <template>
-  <div id="app-root">
+  <div id="app-root" :class="{ 'sidebar-collapsed': collapsed }">
     <aside class="sidebar">
       <div class="sidebar-brand">
-        <div class="brand-icon">📈</div>
-        <div class="brand-text">投资学院</div>
-        <div class="brand-sub">Investment Academy</div>
+        <div class="brand-icon">
+          <IAIcon name="activity" size="xl" />
+        </div>
+        <div class="brand-text">
+          投资学院
+          <span>Investment Academy</span>
+        </div>
+        <button class="sidebar-toggle" @click="collapsed = !collapsed" title="收起/展开">
+          <IAIcon name="menu" size="md" />
+        </button>
       </div>
 
       <nav class="sidebar-nav">
-        <router-link to="/" class="nav-section-title">
-          🏠 首页
-        </router-link>
+        <div class="nav-section">
+          <router-link to="/" class="nav-item" active-class="nav-item--active" exact>
+            <IAIcon name="home" size="md" />
+            <span class="nav-label">首页</span>
+          </router-link>
+        </div>
 
-        <div class="nav-section-title">📚 知识轨道</div>
-        <router-link
-          v-for="p in phases" :key="p.id"
-          :to="`/knowledge/${p.id}`"
-          class="nav-item"
-          active-class="nav-item--active"
-        >
-          <span class="nav-label">{{ formatPhaseLabel(p.id) }}</span>
-          <span class="nav-count">{{ p.chapter_count }}章</span>
-        </router-link>
+        <div class="nav-section">
+          <div class="nav-section-title">学习轨道</div>
+          <router-link
+            v-for="p in phases" :key="p.id"
+            :to="`/knowledge/${p.id}`"
+            class="nav-item"
+            active-class="nav-item--active"
+          >
+            <IAIcon name="book" size="md" />
+            <span class="nav-label">{{ formatPhaseLabel(p.id) }}</span>
+            <span class="nav-count">{{ p.chapter_count }}章</span>
+          </router-link>
+        </div>
 
-        <div class="nav-section-title">🔬 实践轨道</div>
-        <router-link
-          v-for="lab in labs" :key="lab.id"
-          :to="`/practice/${lab.id}`"
-          class="nav-item"
-          active-class="nav-item--active"
-        >
-          <span class="nav-label">{{ formatLabLabel(lab.id) }}</span>
-          <span class="nav-status" v-if="lab.has_guide">📖</span>
-        </router-link>
+        <div class="nav-section">
+          <div class="nav-section-title">实践轨道</div>
+          <router-link
+            v-for="lab in labs" :key="lab.id"
+            :to="`/practice/${lab.id}`"
+            class="nav-item"
+            active-class="nav-item--active"
+          >
+            <IAIcon name="lab" size="md" />
+            <span class="nav-label">{{ formatLabLabel(lab.id) }}</span>
+            <IAIcon v-if="lab.has_guide" name="book" size="xs" class="nav-guide" />
+          </router-link>
+        </div>
 
-        <div class="nav-section-title">🛠️ 工具箱</div>
-        <router-link to="/sandbox" class="nav-item" active-class="nav-item--active">
-          <span class="nav-label">🎮 交易沙盒</span>
-        </router-link>
-        <router-link to="/psychology" class="nav-item" active-class="nav-item--active">
-          <span class="nav-label">🧠 心理自检</span>
-        </router-link>
-        <router-link to="/journal" class="nav-item" active-class="nav-item--active">
-          <span class="nav-label">📓 交易日志</span>
-        </router-link>
-        <router-link to="/progress" class="nav-item" active-class="nav-item--active">
-          <span class="nav-label">📊 进度仪表盘</span>
-        </router-link>
-        <router-link to="/market-overview" class="nav-item" active-class="nav-item--active">
-          <span class="nav-label">🏦 市场概览</span>
-        </router-link>
-        <router-link to="/spas" class="nav-item" active-class="nav-item--active">
-          <span class="nav-label">🤖 SPAS 自动信号</span>
-        </router-link>
-        <router-link to="/manual-analysis" class="nav-item" active-class="nav-item--active">
-          <span class="nav-label">🧮 手动指标分析</span>
-        </router-link>
+        <div class="nav-section">
+          <div class="nav-section-title">工具箱</div>
+          <router-link to="/sandbox" class="nav-item" active-class="nav-item--active">
+            <IAIcon name="tool" size="md" />
+            <span class="nav-label">交易沙盒</span>
+          </router-link>
+          <router-link to="/psychology" class="nav-item" active-class="nav-item--active">
+            <IAIcon name="brain" size="md" />
+            <span class="nav-label">心理自检</span>
+          </router-link>
+          <router-link to="/journal" class="nav-item" active-class="nav-item--active">
+            <IAIcon name="journal" size="md" />
+            <span class="nav-label">交易日志</span>
+          </router-link>
+          <router-link to="/progress" class="nav-item" active-class="nav-item--active">
+            <IAIcon name="chart" size="md" />
+            <span class="nav-label">进度仪表盘</span>
+          </router-link>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-section-title">市场分析</div>
+          <router-link to="/market-overview" class="nav-item" active-class="nav-item--active">
+            <IAIcon name="market" size="md" />
+            <span class="nav-label">市场概览</span>
+          </router-link>
+          <router-link to="/spas" class="nav-item" active-class="nav-item--active">
+            <IAIcon name="signal" size="md" />
+            <span class="nav-label">SPAS 自动信号</span>
+          </router-link>
+          <router-link to="/manual-analysis" class="nav-item" active-class="nav-item--active">
+            <IAIcon name="analysis" size="md" />
+            <span class="nav-label">手动指标分析</span>
+          </router-link>
+        </div>
       </nav>
 
       <div class="sidebar-footer">
-        <div class="api-badge" :class="{ 'api-ok': apiOk }">
-          {{ apiOk ? '🟢 API 已连接' : '🔴 API 未连接' }}
+        <div class="api-badge" :class="apiOk ? 'ia-badge--green' : 'ia-badge--red'">
+          <IAIcon name="dot" size="xs" />
+          {{ apiOk ? 'API 已连接' : 'API 未连接' }}
         </div>
       </div>
     </aside>
@@ -72,16 +102,19 @@
 </template>
 
 <script>
+import { IAIcon } from './components/ui'
 import { getPhases, getLabs } from './api/content'
 import { healthCheck } from './api/index'
 
 export default {
   name: 'App',
+  components: { IAIcon },
   data() {
     return {
       phases: [],
       labs: [],
       apiOk: false,
+      collapsed: false,
     }
   },
   async created() {
@@ -92,8 +125,9 @@ export default {
       this.apiOk = false
     }
     try {
-      this.phases = (await getPhases()).data || []
-      this.labs = (await getLabs()).data || []
+      const [phasesRes, labsRes] = await Promise.all([getPhases(), getLabs()])
+      this.phases = phasesRes.data || []
+      this.labs = labsRes.data || []
     } catch (e) {
       console.error('加载导航失败:', e)
     }
@@ -123,161 +157,265 @@ export default {
 </script>
 
 <style>
-/* === Layout === */
+/* Layout root */
 #app-root {
   display: flex;
   min-height: 100vh;
-  background: #0A0A0B;
-  background-image: radial-gradient(circle, #1A1A1D 1px, transparent 1px);
-  background-size: 24px 24px;
+  background: var(--ia-bg);
+  background-image: radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size: 28px 28px;
 }
 
-/* === Sidebar === */
+/* Sidebar */
 .sidebar {
-  width: 240px;
-  min-width: 240px;
+  width: var(--ia-sidebar-width);
+  min-width: var(--ia-sidebar-width);
   height: 100vh;
   position: sticky;
   top: 0;
-  background: #050506;
-  border-right: 1px solid #151518;
+  background: var(--ia-surface);
+  border-right: 1px solid var(--ia-border);
   display: flex;
   flex-direction: column;
   padding: 1.5rem 0;
   overflow-y: auto;
+  transition: width 0.25s ease, min-width 0.25s ease;
 }
 
 .sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
   padding: 0 1.2rem;
   margin-bottom: 1.5rem;
+  position: relative;
 }
 
 .brand-icon {
-  font-size: 1.6rem;
-  margin-bottom: 0.3rem;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ia-gold-soft);
+  color: var(--ia-gold);
+  border: 1px solid rgba(240, 185, 11, 0.15);
+  flex-shrink: 0;
 }
 
 .brand-text {
   font-size: 1.15rem;
-  font-weight: 400;
-  color: #F5F0E0;
-  letter-spacing: 0.05em;
+  font-weight: 600;
+  color: var(--ia-text);
+  letter-spacing: 0.03em;
+  line-height: 1.2;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.brand-sub {
+.brand-text span {
+  display: block;
   font-size: 0.65rem;
-  color: #4A4A55;
-  letter-spacing: 0.1em;
-  margin-top: 0.15rem;
+  color: var(--ia-text-tertiary);
+  letter-spacing: 0.08em;
+  font-weight: 400;
+}
+
+.sidebar-toggle {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid var(--ia-border);
+  background: transparent;
+  color: var(--ia-text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sidebar-toggle:hover {
+  color: var(--ia-gold);
+  border-color: var(--ia-gold);
+  background: var(--ia-gold-soft);
 }
 
 .sidebar-nav {
   flex: 1;
   overflow-y: auto;
-  padding: 0 0.8rem;
+  padding: 0 0.9rem;
+}
+
+.nav-section {
+  margin-bottom: 1.2rem;
 }
 
 .nav-section-title {
-  display: block;
   font-size: 0.65rem;
-  color: #6B6B7B;
+  color: var(--ia-text-tertiary);
   letter-spacing: 0.15em;
-  padding: 0.8rem 0.5rem 0.3rem;
-  text-decoration: none;
   text-transform: uppercase;
+  padding: 0.6rem 0.5rem 0.4rem;
+  pointer-events: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .nav-item {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 0.45rem 0.6rem;
-  border-radius: 6px;
+  gap: 0.75rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: var(--ia-radius-xs);
   font-size: 0.85rem;
-  color: #A0A0A8;
+  color: var(--ia-text-secondary);
   text-decoration: none;
   transition: all 0.2s;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .nav-item:hover {
-  background: #141417;
-  color: #E8E6E3;
+  background: var(--ia-surface-hover);
+  color: var(--ia-text);
 }
 
 .nav-item--active {
-  background: #F0B90B15;
-  color: #F0B90B;
-  border: 1px solid #F0B90B22;
+  background: var(--ia-gold-soft);
+  color: var(--ia-gold);
+  border: 1px solid rgba(240, 185, 11, 0.15);
+}
+
+.nav-label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .nav-count {
-  font-size: 0.68rem;
-  color: #4A4A55;
+  font-size: 0.65rem;
+  color: var(--ia-text-tertiary);
+  flex-shrink: 0;
 }
 
-.nav-status {
-  font-size: 0.7rem;
+.nav-guide {
+  color: var(--ia-text-tertiary);
+  flex-shrink: 0;
 }
 
 .sidebar-footer {
   padding: 1rem 1.2rem;
-  border-top: 1px solid #151518;
+  border-top: 1px solid var(--ia-border);
 }
 
 .api-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
   font-size: 0.68rem;
-  color: #6B6B7B;
-  padding: 0.35rem 0.6rem;
-  border-radius: 4px;
-  background: #0D0D10;
-  border: 1px solid #151518;
+  padding: 0.4rem 0.6rem;
+  border-radius: 20px;
+  background: var(--ia-surface-elevated);
+  border: 1px solid var(--ia-border);
+  color: var(--ia-text-secondary);
+  white-space: nowrap;
 }
 
-/* === Main === */
+.api-badge svg {
+  color: currentColor;
+}
+
+/* Main content */
 .main-content {
   flex: 1;
-  padding: 2rem 2.5rem;
-  max-width: 1100px;
+  min-width: 0;
 }
 
-/* === Typography === */
-h1, h2, h3 {
-  color: #F5F0E0;
-  letter-spacing: 0.03em;
-  font-weight: 300;
+/* Collapsed sidebar state */
+.sidebar-collapsed .sidebar {
+  width: 72px;
+  min-width: 72px;
 }
 
-h1 { font-size: 1.8rem; }
-h2 { font-size: 1.3rem; margin-top: 2rem; margin-bottom: 0.8rem; }
-h3 { font-size: 1.05rem; margin-top: 1.5rem; }
+.sidebar-collapsed .brand-text,
+.sidebar-collapsed .nav-section-title,
+.sidebar-collapsed .nav-label,
+.sidebar-collapsed .nav-count,
+.sidebar-collapsed .nav-guide,
+.sidebar-collapsed .api-badge span {
+  display: none;
+}
+
+.sidebar-collapsed .brand-icon {
+  margin: 0 auto;
+}
+
+.sidebar-collapsed .sidebar-toggle {
+  display: none;
+}
+
+.sidebar-collapsed .nav-item {
+  justify-content: center;
+}
+
+.sidebar-collapsed .api-badge {
+  padding: 0.5rem;
+}
+
+.sidebar-collapsed .sidebar-brand {
+  justify-content: center;
+  padding: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    z-index: 100;
+    transform: translateX(0);
+  }
+  .sidebar-collapsed .sidebar {
+    transform: translateX(-100%);
+  }
+  #app-root:not(.sidebar-collapsed)::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 99;
+  }
+  .main-content {
+    padding-top: 0;
+  }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--ia-bg); }
+::-webkit-scrollbar-thumb { background: rgba(240, 185, 11, 0.2); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(240, 185, 11, 0.35); }
+
+/* Global typography overrides */
+h1, h2, h3, h4 {
+  color: var(--ia-text);
+  letter-spacing: 0.02em;
+  font-weight: 500;
+}
 
 p {
   line-height: 1.8;
-  margin-bottom: 0.8rem;
-  color: #C8C6C3;
+  color: var(--ia-text-secondary);
 }
 
-a {
-  color: #F0B90B;
-  text-decoration: none;
-}
+a { color: var(--ia-gold); text-decoration: none; }
 
-/* === Utility === */
-.divider {
-  height: 1px;
-  background: linear-gradient(to right, #F0B90B44, transparent);
-  margin: 2rem 0;
-}
-
-.card {
-  background: #0D0D10;
-  border: 1px solid #151518;
-  border-radius: 10px;
-  padding: 1.5rem;
-  transition: border-color 0.3s;
-}
-
-.card:hover {
-  border-color: #F0B90B33;
-}
+/* View transitions */
+.fade-enter-active, .fade-leave-active { transition: opacity 0.2s; }
+.fade-enter, .fade-leave-to { opacity: 0; }
 </style>

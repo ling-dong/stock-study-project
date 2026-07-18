@@ -566,6 +566,8 @@ python scripts/diagnose_power.py
 | 脚本 | 功能 |
 |------|------|
 | `scripts/start.py` | **主入口**，支持 fetch/pipeline/backtest/serve/all 五个子命令 |
+| `scripts/start_all.py` | 一键启动 SPAS API + Investment Academy 后端 + Vue2 前端 |
+| `scripts/stop_all.py` | 一键关闭上述三个服务（按 PID 或端口扫描） |
 | `scripts/fetch_real_data.py` | 从Tushare获取13只ETF的3年日线数据 |
 | `scripts/generate_data.py` | 生成合成测试数据（6只ETF，500日线+2880根5分钟线） |
 | `scripts/run_pipeline.py` | 加载数据 → 运行流水线 → 输出信号 + 风控评估 |
@@ -719,11 +721,16 @@ D:\stock_market\
 │   │   └── stream.py        # Redis Streams语义实现
 │   └── config/              # 配置加载
 │       └── loader.py        # YAML → Pydantic配置
-├── scripts/                 # 运行脚本(9个)
+├── scripts/                 # 运行脚本(11个)
 ├── tests/                   # 测试(12个测试文件)
 │   ├── unit/                # 单元测试(10个)
 │   ├── integration/         # 集成测试(1个)
 │   └── fixtures/            # 测试夹具
+├── investment_academy/      # 投资学院 (Vue2 + FastAPI，学习系统)
+│   ├── backend/             # Academy 后端 (port 8001)
+│   ├── frontend/             # Vue2 前端 (port 8080)
+│   ├── core/                 # 共享数据层
+│   └── content/              # 学习内容
 ├── data/                    # 本地数据存储(Parquet)
 ├── pyproject.toml           # 项目配置
 └── requirements.txt         # 依赖列表

@@ -1,6 +1,6 @@
 # 投资学院 Investment Academy
 
-> 基于 Vue2 + FastAPI + Streamlit 的交互式投资学习系统 · 从零基础到投资大拿
+> 基于 Vue2 + FastAPI 的交互式投资学习系统 · 从零基础到投资大拿
 
 ---
 
@@ -50,14 +50,12 @@ npm install
 npm run serve
 ```
 
-**Streamlit 模式（旧版，可选）：**
+**一键关闭：**
 
 ```bash
-cd D:\stock_market\investment_academy
-streamlit run streamlit_app/app.py
+cd D:\stock_market
+python scripts/stop_all.py
 ```
-
-浏览器打开 http://localhost:8501。
 
 ---
 
@@ -79,7 +77,6 @@ D:\stock_market
 │   │   └── routers/spas.py  → 代理到 SPAS Core API
 │   ├── frontend/         Vue2 SPA (port 8080)
 │   ├── core/             共享库（models/db/bridge/engine）
-│   ├── streamlit_app/    Streamlit 旧版入口
 │   └── content/          学习内容（Markdown/YAML）
 ```
 
@@ -88,7 +85,7 @@ D:\stock_market
 ### 2.2 分层架构
 
 ```
-Vue2 / Streamlit 前端
+Vue2 前端
    │
    ├── /api/spas/*     → SPAS Core API (port 8000)  [预测/市场数据]
    └── /api/*          → Academy Backend (port 8001) [学习/进度/沙盒/用户]
@@ -131,7 +128,7 @@ investment_academy/
 ├── requirements.txt              # pip install 用
 ├── 使用指南.md                    # 详细操作指南
 │
-├── core/                         # 共享核心库（Backend + Streamlit 共用）
+├── core/                         # 共享核心库（Backend 与前端共用）
 │   ├── models/                   # 数据模型（dataclass）
 │   ├── db/                       # SQLite 持久化（6 表 + CRUD）
 │   ├── bridge/                   # SPAS 数据读取适配器
@@ -157,11 +154,6 @@ investment_academy/
 │   │   ├── components/           # KLineChart / QuizWidget / MarkdownViewer
 │   │   └── api/                  # axios 封装
 │   └── vue.config.js             # 开发代理: /api/spas → 8000, /api → 8001
-│
-├── streamlit_app/                # Streamlit 旧版（可选）
-│   ├── app.py                    # 入口
-│   ├── pages/                    # 页面
-│   └── widgets/                  # Streamlit 专用组件
 │
 ├── content/                      # 学习内容（7 阶段 34 章 + 170+ 测验题）
 │   ├── knowledge_track/
@@ -381,7 +373,6 @@ class UserPreferences:
 |----|------|------|------|
 | 主前端 | Vue2 + Vue Router + Vuex | — | SPA 页面、路由、状态管理 |
 | 主后端 | FastAPI | ≥0.100 | REST API、CORS、SPAS 代理 |
-| 备选前端 | Streamlit | ≥1.28 | 快速原型/旧版入口 |
 | 主题 | 自定义深色主题 | — | 黑底 + 金色强调 |
 | 样式 | 自定义 CSS | — | 仪表盘卡片、时间线 |
 | 图表 | ECharts / Plotly | ≥5.17 | K线图、指标图 |
@@ -424,11 +415,11 @@ GET /api/spas/system/status          → SPAS 系统状态
 
 ## 8. 关键设计决策
 
-### 8.1 为什么同时有 Vue2 + FastAPI 和 Streamlit？
+### 8.1 为什么采用 Vue2 + FastAPI 前后端分离架构？
 
 - **Vue2 + FastAPI** 是主架构：前后端分离、更好的交互体验、可扩展为生产 Web 应用
-- **Streamlit** 保留为快速原型和旧版入口：纯 Python、开发速度快，与 SPAS 技术栈一致
-- 两者共享 `core/` 数据层和 `content/` 学习内容
+- 前端通过 `/api/spas/*` 直接访问 SPAS 核心 API，通过 `/api/*` 访问 Academy 后端
+- 前后端共享 `core/` 数据层和 `content/` 学习内容
 
 ### 8.2 为什么 SPAS 预测要由 SPAS Core API 统一提供？
 
@@ -461,7 +452,6 @@ GET /api/spas/system/status          → SPAS 系统状态
 - [x] SQLite 6 表 + CRUD
 - [x] Bridge: data_reader + knowledge_extractor
 - [x] Content loader + Quiz widget
-- [x] Streamlit 主入口（双轨导航）
 - [x] P1 第一章完整内容（Markdown + 测验 YAML）
 - [x] M1 数据勘探实验室
 - [x] 23 个自动化测试全部通过
@@ -516,9 +506,8 @@ uvicorn backend.main:app --host 127.0.0.1 --port 8001
 cd D:\stock_market\investment_academy\frontend
 npm run serve
 
-# 启动 Streamlit 学习界面（可选）
-cd D:\stock_market\investment_academy
-streamlit run streamlit_app/app.py
+# 一键关闭
+python scripts/stop_all.py
 
 # 安装依赖
 pip install -r requirements.txt
