@@ -9,8 +9,8 @@
       <span v-if="currentChapter"><strong>{{ currentChapter.title }}</strong></span>
     </div>
 
-    <h1>📚 P1: 股市基础</h1>
-    <p class="phase-desc">从零开始，理解股票市场的基本概念</p>
+    <h1>📚 {{ phaseTitle }}</h1>
+    <p class="phase-desc">{{ phaseDesc }}</p>
 
     <!-- 章节导航 Tab -->
     <div class="chapter-tabs">
@@ -23,13 +23,15 @@
         }"
         @click="selectChapter(ch)"
       >
-        {{ ch.title.replace(/^第[一二三四五]章：/, '') }}
+        {{ ch.title || ch.file }}
         <span v-if="chapterDone(ch.id)" class="tab-check">✓</span>
       </button>
     </div>
 
     <!-- 加载中 -->
-    <div v-if="loadingContent" class="loading">加载中…</div>
+    <div v-if="loadingChapters" class="loading">加载章节列表…</div>
+
+    <div v-else-if="loadingContent" class="loading">加载中…</div>
 
     <!-- 章节内容 -->
     <div v-else-if="chapterContent" class="chapter-body">
@@ -53,41 +55,86 @@
 </template>
 
 <script>
-import { getChapter, getQuiz } from '../../api/content'
+import { getChapter, getQuiz, getChapters } from '../../api/content'
 import { getProgress } from '../../api/progress'
 import MarkdownViewer from '../../components/MarkdownViewer.vue'
 import QuizWidget from '../../components/QuizWidget.vue'
 
-const CHAPTERS = [
-  { file: 'chapter_01_stock_concept.md', title: '第一章：什么是股票？', id: 'p1_ch1' },
-  { file: 'chapter_02_etf_basics.md', title: '第二章：ETF 入门', id: 'p1_ch2' },
-  { file: 'chapter_03_a_share_rules.md', title: '第三章：A股交易规则', id: 'p1_ch3' },
-  { file: 'chapter_04_kline_intro.md', title: '第四章：K线图入门', id: 'p1_ch4' },
-  { file: 'chapter_05_ohlcv.md', title: '第五章：基本术语', id: 'p1_ch5' },
-]
+const PHASE_LABELS = {
+  p1_basics: 'P1: 股市基础', p2_technical: 'P2: 技术分析入门',
+  p3_sectors: 'P3: 板块与产业链', p4_quant: 'P4: 量化策略思维',
+  p5_risk: 'P5: 风险管理', p6_psychology: 'P6: 交易心理与市场情绪',
+  p7_integration: 'P7: 实战整合',
+}
+const PHASE_DESCS = {
+  p1_basics: '从零开始，理解股票市场的基本概念',
+  p2_technical: '掌握K线微观结构、均线系统与Wyckoff理论',
+  p3_sectors: '理解行业分类、产业链传导与板块轮动规律',
+  p4_quant: '建立概率思维，学习量化策略设计与ML应用',
+  p5_risk: '仓位管理、回撤控制与尾部风险应对',
+  p6_psychology: '交易者自我认知、情绪管理与纪律规则',
+  p7_integration: 'Walk-Forward回测、前视偏差与完整交易系统',
+}
 
 export default {
   name: 'P1Basics',
   components: { MarkdownViewer, QuizWidget },
+  created() {
+    this.PHASE_LABELS = PHASE_LABELS
+    this.PHASE_DESCS = PHASE_DESCS
+  },
   props: {
     phaseId: { type: String, default: 'p1_basics' },
   },
   data() {
     return {
-      chapters: CHAPTERS,
-      activeChapter: 'p1_ch1',
-      currentChapter: CHAPTERS[0],
+      chapters: [],
+      activeChapter: '',
+      currentChapter: null,
       chapterContent: null,
       quizData: null,
       loadingContent: false,
-      progressMap: {},     // {p1_ch1: {completed, quiz_score, ...}}
+      loadingChapters: true,
+      progressMap: {},
     }
   },
-  async created() {
-    await this.loadProgress()
-    this.selectChapter(this.currentChapter)
+  computed: {
+    phaseTitle() {
+      return this.PHASE_LABELS[this.phaseId] || this.phaseId
+    },
+    phaseDesc() {
+      return this.PHASE_DESCS[this.phaseId] || ''
+    },
+  },
+  watch: {
+    phaseId: {
+      immediate: true,
+      handler() { this.initPhase() },
+    },
   },
   methods: {
+    async initPhase() {
+      this.chapters = []
+      this.currentChapter = null
+      this.chapterContent = null
+      this.quizData = null
+      this.loadingChapters = true
+      await this.loadProgress()
+      try {
+        const res = await getChapters(this.phaseId)
+        const rawChapters = res.data || []
+        this.chapters = rawChapters
+        if (this.chapters.length) {
+          this.currentChapter = this.chapters[0]
+          this.activeChapter = this.chapters[0].id
+          this.selectChapter(this.chapters[0])
+        }
+      } catch (e) {
+        console.error('加载章节列表失败:', e)
+      } finally {
+        this.loadingChapters = false
+      }
+    },
     chapterDone(id) {
       return this.progressMap[id]?.completed
     },

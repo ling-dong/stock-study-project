@@ -1,6 +1,6 @@
 """市场数据 — Bridge 层 ETF 数据接口"""
 from fastapi import APIRouter, HTTPException, Query
-from bridge.data_reader import (
+from core.bridge.data_reader import (
     list_available_etfs,
     load_etf_data,
     load_all_etf_metadata,

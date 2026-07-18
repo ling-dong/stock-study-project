@@ -1,0 +1,36 @@
+chapters:
+  p4_ch1:
+    questions:
+      - { id: q1, type: single_choice, question: "'基率'是什么意思？", options: ["明天涨的概率", "历史上类似情况发生的概率", "自己感觉的概率", "专家预测的概率"], answer: 1, explanation: "基率=不加入任何个人判断的历史统计概率，是无偏基准。" }
+      - { id: q2, type: single_choice, question: "贝叶斯更新的核心是什么？", options: ["相信第一感觉", "忽略新信息", "每次获新信息后动态调整概率", "坚持原来的判断"], answer: 2, explanation: "贝叶斯更新=基于新证据逐步调整信心，而非一个信号就全信或全不信。" }
+      - { id: q3, type: single_choice, question: "胜率70%但每次亏赚比例相等的策略，长期期望值是多少？", options: ["+20%", "+40%", "0%", "+70%"], answer: 1, explanation: "EV = 0.7×1 - 0.3×1 = 0.4 = +40%。胜率×盈亏比才是关键。" }
+      - { id: q4, type: true_false, question: "期望值为正时，应该每次全部仓位投入以最大化收益", options: [], answer: false, explanation: "全仓投入可能在'大数定律'生效前就爆仓了。仓位管理让你活到大数出现。" }
+      - { id: q5, type: single_choice, question: "只有5次样本时胜率80%，收缩估计后可能是？", options: ["80%不变", "降至65%左右", "升至95%", "降至20%"], answer: 1, explanation: "小样本的极端值要向均值'收缩'。5次样本太少，80%不可信，应收缩到65%左右。" }
+  p4_ch2:
+    questions:
+      - { id: q1, type: single_choice, question: "规则策略相比主观判断的最大优势是？", options: ["更高收益", "零风险", "一致性和可回测", "不需要思考"], answer: 2, explanation: "规则策略的核心优势是每次按同一规则执行（一致性）+可用历史数据验证（可回测）。" }
+      - { id: q2, type: single_choice, question: "过拟合是指什么？", options: ["模型太简单", "模型恰好迎合历史数据但未来无效", "模型没训练够", "数据太少"], answer: 1, explanation: "过拟合=参数恰好迎合了历史数据的特点，但这些特点未来不会重复→失效。" }
+      - { id: q3, type: single_choice, question: "如何避免过拟合？", options: ["用更多特征", "训练集和测试集分离验证", "多训练几遍", "随便调参数"], answer: 1, explanation: "训练集=调参用，测试集=检验用，两者永不重叠。这是避免过拟合的标准方法。" }
+      - { id: q4, type: single_choice, question: "夏普比率的及格线是？", options: [">0.5", ">0.8", ">1.5", ">3.0"], answer: 1, explanation: "夏普>0.8=合格，>1.0=好，>1.5=非常好。每单位风险获得的超额收益。" }
+      - { id: q5, type: true_false, question: "历史回测收益可以直接作为实盘预期收益", options: [], answer: false, explanation: "回测收益-交易成本-过拟合衰减-市场变化 = 实盘预期。通常衰减30-50%。" }
+  p4_ch3:
+    questions:
+      - { id: q1, type: single_choice, question: "特征工程的核心是什么？", options: ["复制OHLCV数据", "将原始数据转化为有价值的输入", "增加数据量", "删除所有数据"], answer: 1, explanation: "特征工程=将原始OHLCV转化为能被模型理解的描述变量，如实体比而非原始价格。" }
+      - { id: q2, type: true_false, question: "Point-in-Time（时点标注）是为了避免前视偏差", options: [], answer: true, explanation: "正确。时点标注确保每个特征的计算时间在可用时点，不泄露未来信息。" }
+      - { id: q3, type: single_choice, question: "维度灾难是什么问题？", options: ["数据量太少", "特征太多导致样本稀疏", "数据太多", "特征太少"], answer: 1, explanation: "维度灾难=特征过多时，每个维度上的样本变得稀疏，模型性能反而下降。" }
+      - { id: q4, type: single_choice, question: "特征选择中最简单有效的方法是什么？", options: ["全都用上", "相关性分析+去掉冗余特征", "随机选", "只用价格特征"], answer: 1, explanation: "相关性分析=去掉高度相关(>0.85)的冗余特征，保留最独立的信息维度。" }
+      - { id: q5, type: true_false, question: "SPAS对每根K线生成的特征向量包含50+维特征", options: [], answer: true, explanation: "正确。SPAS FeatureVector包含K线6维+趋势特征+量价特征+形态特征+板块特征等50+维。" }
+  p4_ch4:
+    questions:
+      - { id: q1, type: single_choice, question: "ML在投资中能做的是什么？", options: ["精准预测明天收盘价", "提高概率判断的精度", "保证盈利", "消除所有风险"], answer: 1, explanation: "ML的正确角色是提高概率判断精度，而非精确预测价格——后者是不可能的。" }
+      - { id: q2, type: single_choice, question: "概率校准的目的是什么？", options: ["让模型更复杂", "将模型分数映射到真实概率", "加快训练速度", "降低数据需求"], answer: 1, explanation: "概率校准=将模型的原始输出映射到真实概率。模型说'85%'但实际可能只有60%。" }
+      - { id: q3, type: single_choice, question: "Brier分数<0.15表示什么？", options: ["模型很差", "概率预测可用", "模型过拟合了", "需要重新训练"], answer: 1, explanation: "Brier<0.15=可用，<0.10=优秀，<0.05=非常优秀但小心过拟合。" }
+      - { id: q4, type: true_false, question: "ML模型在训练集上表现好，在实盘上也一定表现好", options: [], answer: false, explanation: "训练集上的表现通常比实盘高30-50%，这是普遍规律（过拟合+市场变化）。" }
+      - { id: q5, type: single_choice, question: "最佳实践是规则+ML融合而不是单一使用的原因？", options: ["规则不可靠", "ML太慢", "规则提供可解释性+风控底线，ML补充模式识别", "规则不需要"], answer: 2, explanation: "规则=可解释+有底线。ML=超出规则的复杂模式。两者融合>单一使用。" }
+  p4_ch5:
+    questions:
+      - { id: q1, type: single_choice, question: "投票融合中总信号在什么范围表示'观望'？", options: [">0.5", "-0.3~0.3", "<-0.5", "任意值"], answer: 1, explanation: "总信号在-0.3~0.3之间=方向不明确=观望。>0.3做多，<-0.3做空/减仓。" }
+      - { id: q2, type: single_choice, question: "信号源之间分歧很大时应该？", options: ["选最强的信号", "观望不交易", "加仓", "抛硬币决定"], answer: 1, explanation: "分歧大=市场方向不明=交易胜率骤降。观望是最理性的选择。" }
+      - { id: q3, type: single_choice, question: "SPAS动态权重中，近期表现好的信号源会？", options: ["被降低权重", "权重不变", "权重自动上升", "被禁用"], answer: 2, explanation: "近期表现好→权重自动上升。这是sigmoid动态权重的核心机制。" }
+      - { id: q4, type: true_false, question: "高波动率时所有信号源的权重都会被压低", options: [], answer: true, explanation: "正确。高波动率=不确定性高=所有信号可靠性下降=系统自动降权。" }
+      - { id: q5, type: single_choice, question: "融合决策Checklist中，至少需要几个时间框架信号一致？", options: ["1个", "2个", "3个", "全部"], answer: 1, explanation: "至少2个时间框架一致才考虑入场。只有1个框架有信号=不可靠。" }

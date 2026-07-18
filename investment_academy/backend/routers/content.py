@@ -1,7 +1,7 @@
 """内容系统 — 章节、测验、实验室"""
 from fastapi import APIRouter, HTTPException
-from interactive.content_loader import (
-    list_phases, list_labs, load_chapter, load_quiz, load_lab_guide, load_lab_exercises,
+from core.engine.content_loader import (
+    list_phases, list_labs, list_chapters, load_chapter, load_quiz, load_lab_guide, load_lab_exercises,
 )
 from backend.schemas import ChapterContentOut, QuizContentOut, LabContentOut
 
@@ -12,6 +12,12 @@ router = APIRouter(prefix="/api/content", tags=["内容系统"])
 def get_phases():
     """知识轨道阶段列表"""
     return list_phases()
+
+
+@router.get("/chapters/{phase_id}")
+def get_chapters(phase_id: str):
+    """某阶段的章节列表"""
+    return list_chapters(phase_id)
 
 
 @router.get("/labs")

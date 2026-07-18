@@ -2,8 +2,8 @@
 import uuid
 import threading
 from fastapi import APIRouter, HTTPException
-from bridge.data_reader import load_etf_data
-from interactive.sandbox_engine import SandboxEngine
+from core.bridge.data_reader import load_etf_data
+from core.engine.sandbox_engine import SandboxEngine
 from backend.schemas import (
     SandboxInitIn, SandboxInitOut,
     SandboxBuyIn, SandboxSellIn,
@@ -12,8 +12,20 @@ from backend.schemas import (
 router = APIRouter(prefix="/api/sandbox", tags=["交易沙盒"])
 
 # 内存会话存储器
+import time as _time
 _sessions: dict[str, SandboxEngine] = {}
+_sessions_ts: dict[str, float] = {}  # session_id → 创建时间戳
 _lock = threading.Lock()
+SESSION_TTL = 1800  # 30 分钟超时自动清理
+
+
+def _cleanup_expired():
+    """清理过期会话"""
+    now = _time.time()
+    expired = [sid for sid, ts in _sessions_ts.items() if now - ts > SESSION_TTL]
+    for sid in expired:
+        _sessions.pop(sid, None)
+        _sessions_ts.pop(sid, None)
 
 
 @router.post("/init", response_model=SandboxInitOut)
@@ -34,7 +46,9 @@ def sandbox_init(body: SandboxInitIn):
     session_id = uuid.uuid4().hex[:12]
 
     with _lock:
+        _cleanup_expired()
         _sessions[session_id] = engine
+        _sessions_ts[session_id] = _time.time()
 
     return {"session_id": session_id, "total_bars": len(df)}
 

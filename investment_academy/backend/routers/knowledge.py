@@ -1,6 +1,6 @@
 """知识提取器 API — Bridge 层投资知识暴露"""
 from fastapi import APIRouter
-from bridge.knowledge_extractor import (
+from core.bridge.knowledge_extractor import (
     extract_sector_list,
     extract_factor_definitions,
     extract_market_state_params,

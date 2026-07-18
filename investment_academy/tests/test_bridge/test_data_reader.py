@@ -1,6 +1,6 @@
 """测试 data_reader"""
 import pytest
-from bridge.data_reader import list_available_etfs, load_etf_data, load_all_etf_metadata
+from core.bridge.data_reader import list_available_etfs, load_etf_data, load_all_etf_metadata
 
 
 @pytest.mark.integration
@@ -39,7 +39,7 @@ def test_load_all_etf_metadata():
 
 def test_list_etfs_no_data_dir(monkeypatch, tmp_path):
     """SPAS_DATA_DIR 不存在时返回空列表"""
-    from bridge import data_reader
+    from core.bridge import data_reader
     monkeypatch.setattr(data_reader, "SPAS_DATA_DIR", tmp_path / "nonexistent")
     etfs = data_reader.list_available_etfs()
     assert etfs == []

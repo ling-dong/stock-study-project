@@ -1,8 +1,8 @@
 """测验系统 — 评分 + 持久化"""
 from fastapi import APIRouter, HTTPException
-from interactive.content_loader import load_quiz
-from models.quiz import QuizQuestion
-from db.repository import save_quiz_result, save_chapter_progress, get_chapter_progress
+from core.engine.content_loader import load_quiz
+from core.models.quiz import QuizQuestion
+from core.db.repository import save_quiz_result, save_chapter_progress, get_chapter_progress
 from backend.schemas import QuizSubmitIn, QuizSubmitOut
 from datetime import datetime
 

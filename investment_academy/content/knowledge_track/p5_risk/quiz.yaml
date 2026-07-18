@@ -1,0 +1,36 @@
+chapters:
+  p5_ch1:
+    questions:
+      - { id: q1, type: single_choice, question: "Kelly公式的f*代表什么？", options: ["最优买入价格", "最优下注比例", "最优止损位", "最优止盈位"], answer: 1, explanation: "f* = (b×p−q)/b，是理论上最优的资金下注比例。" }
+      - { id: q2, type: single_choice, question: "实战中为什么用1/4 Kelly而不是全额？", options: ["因为1/4收益更高", "因为真实胜率和盈亏比永远不精确", "因为规则如此", "1/4 Kelly是法律规定"], answer: 1, explanation: "你不知道真实的胜率和盈亏比，它们只是估计值。用1/4 Kelly留足安全边际。" }
+      - { id: q3, type: single_choice, question: "R:R=1:1时，最低需要多少胜率才能不亏？", options: ["30%", "40%", "50%", "70%"], answer: 2, explanation: "R:R=1:1时，胜率需>50%才能正期望。R:R越高，所需胜率越低。" }
+      - { id: q4, type: true_false, question: "金字塔加仓（先多后少）比倒金字塔加仓更安全", options: [], answer: true, explanation: "正确。先多后少=均价低、回调可控。倒金字塔=成本越来越高、回调时重仓亏损。" }
+      - { id: q5, type: single_choice, question: "固定比例仓位法中，每次应该用总资金的多少？", options: ["看感觉", "固定比例，不管盈亏", "赢了加、亏了减", "每次都不同"], answer: 1, explanation: "固定比例=赢了和亏了都用一样的比例。这避免了赢后膨胀/输后复仇的心理陷阱。" }
+  p5_ch2:
+    questions:
+      - { id: q1, type: single_choice, question: "账户从最高点亏50%，需要赚多少才回本？", options: ["50%", "100%", "150%", "25%"], answer: 1, explanation: "亏50%需要赚100%回本。亏损和回本是不对称的—每多亏1%，回本难度指数增加。" }
+      - { id: q2, type: single_choice, question: "SPAS L3（月度止损）的触发条件是？", options: ["日亏3%", "月亏15%", "月亏5%", "月亏30%"], answer: 1, explanation: "月亏15%触发L3强制清仓。这不是惩罚，是保护——月度亏15%说明策略出了系统性问题。" }
+      - { id: q3, type: single_choice, question: "连续亏损5笔应该怎么做？", options: ["加大仓位扳本", "暂停交易3天", "换一个ETF继续", "无视继续"], answer: 1, explanation: "连续亏损5笔不是运气问题，是判断出了问题。暂停交易让情绪回归正常。" }
+      - { id: q4, type: true_false, question: "止损后立即加大仓位是为了快速回本", options: [], answer: false, explanation: "错误。止损后加大仓位=复仇交易，是最危险的行为之一，往往导致更大亏损。" }
+      - { id: q5, type: single_choice, question: "T+1制度下止损的最大风险是？", options: ["佣金太高", "买入当天无法止损", "印花税", "没有风险"], answer: 1, explanation: "T+1=今天买入下午暴跌无法卖出。预防：上午不重仓，分批买入，设条件单第二天集合竞价止损。" }
+  p5_ch3:
+    questions:
+      - { id: q1, type: single_choice, question: "波动率上升时应该？", options: ["增加仓位", "降低仓位", "仓位不变", "全仓"], answer: 1, explanation: "高波动率=不确定性高=信号可靠性下降=降低仓位。" }
+      - { id: q2, type: single_choice, question: "ATR的主要用途是？", options: ["预测方向", "计算止损宽度", "选择股票", "替代ADX"], answer: 1, explanation: "ATR的核心用途是动态设止损—止损=入场价−2×ATR(14)，比固定百分比更科学。" }
+      - { id: q3, type: single_choice, question: "SPAS波动率锚定的逻辑是？", options: ["固定仓位", "σ_now vs σ_0 决定仓位缩放", "不看波动率", "越高波动越加仓"], answer: 1, explanation: "仓位缩放因子=σ₀/σ_now。当前波动率高于历史平均→减仓，反之可适度加仓。" }
+      - { id: q4, type: true_false, question: "低波动率往往是突破的前兆", options: [], answer: true, explanation: "正确。低波动率=市场沉寂，往往预示着即将的突破和波动率上升。" }
+      - { id: q5, type: single_choice, question: "True Range (TR) 计算考虑了几个值？", options: ["1个", "2个", "3个", "4个"], answer: 2, explanation: "TR=max(High−Low, |High−昨收|, |Low−昨收|)，考虑了3个值来捕捉跳空的影响。" }
+  p5_ch4:
+    questions:
+      - { id: q1, type: single_choice, question: "金融市场的'肥尾'是什么意思？", options: ["市场很胖", "极端事件比正态分布预测的多得多", "数据都是假的", "尾部很细"], answer: 1, explanation: "肥尾=极端事件（大涨大跌）的发生频率远高于正态分布的预测。" }
+      - { id: q2, type: single_choice, question: "隔夜跳空超过3%，SPAS会触发什么？", options: ["加仓", "当日禁止新开仓", "无影响", "自动止损"], answer: 1, explanation: "跳空>3%=市场剧烈波动，当日禁止新开仓以规避进一步的不确定性。" }
+      - { id: q3, type: single_choice, question: "应对尾部风险的最基础手段是？", options: ["ALL-IN", "分散化", "加杠杆", "预测黑天鹅"], answer: 1, explanation: "分散化=不重仓单一标的=即使暴雷也不会致命。这是应对尾部风险最基础也最有效的手段。" }
+      - { id: q4, type: true_false, question: "当检测到极端风险信号时，空仓也是一种策略", options: [], answer: true, explanation: "正确。空仓不是逃避，是在极端环境下最理性的风险规避策略。" }
+      - { id: q5, type: single_choice, question: "A股跌停超过100家时通常说明什么？", options: ["强势市场", "正常波动", "市场恐慌", "没人交易"], answer: 2, explanation: "100+家跌停=市场广泛恐慌。此时流动性可能枯竭，应减仓或清仓。" }
+  p5_ch5:
+    questions:
+      - { id: q1, type: single_choice, question: "流动性最好理解为什么？", options: ["能赚钱的能力", "能快速以合理价格买卖的能力", "持有现金的能力", "预测的能力"], answer: 1, explanation: "流动性=快速以合理价格买卖而不产生过多冲击成本的能力。" }
+      - { id: q2, type: true_false, question: "ETF溢价>1.5%时是买入的好时机", options: [], answer: false, explanation: "高溢价=多付了钱买同样的东西，对买方不利。溢价>1.5%不买。" }
+      - { id: q3, type: single_choice, question: "冲击成本是指什么？", options: ["印花税", "大单交易对价格的影响", "佣金", "过户费"], answer: 1, explanation: "冲击成本=你的大额订单推动价格变动的幅度。订单越大、流动性越差，冲击成本越高。" }
+      - { id: q4, type: single_choice, question: "SPAS流动性检查中，单品ETF不超过总仓位的多少？", options: ["50%", "20%", "5%", "100%"], answer: 1, explanation: "单品≤20%是防止单一标的风险过大的分散化约束。" }
+      - { id: q5, type: true_false, question: "节假日前交易量通常会上升", options: [], answer: false, explanation: "错误。节前交易量通常萎缩（资金避险），节后第一天冲击大（积累了几天的信息一次性释放）。" }

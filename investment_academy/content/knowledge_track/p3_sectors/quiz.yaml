@@ -1,0 +1,29 @@
+chapters:
+  p3_ch1:
+    questions:
+      - { id: q1, type: single_choice, question: "SPAS系统的行业划分基于什么？", options: ["官方行政分类", "行业ETF驱动的14个行业", "随机的28个行业", "按字母排序"], answer: 1, explanation: "SPAS 使用14个行业ETF驱动分类，每个行业对应真实可交易的ETF。" }
+      - { id: q2, type: single_choice, question: "食品饮料属于哪类行业？", options: ["周期性行业", "防御性行业", "成长性行业", "资源型行业"], answer: 1, explanation: "食品饮料是典型的防御性行业，经济下行时仍能保持盈利。" }
+      - { id: q3, type: true_false, question: "周期性行业在经济上行时表现更好", options: [], answer: true, explanation: "正确。经济上行时需求增加，周期性行业（钢铁、化工、证券）表现更好。" }
+      - { id: q4, type: single_choice, question: "ETF驱动分类的主要优势是什么？", options: ["行业分类更细", "直接对应可交易的ETF", "不需要更新", "免费"], answer: 1, explanation: "ETF驱动分类最大优势：行业好坏直接反映在ETF价格上，不存在'看对行业选错股'。" }
+      - { id: q5, type: single_choice, question: "选择行业时最先应该看什么？", options: ["朋友推荐", "微博热搜", "宏观经济周期", "随机选择"], answer: 2, explanation: "先看宏观经济周期—上行选周期行业，下行选防御行业。这是最基础的行业选择逻辑。" }
+  p3_ch2:
+    questions:
+      - { id: q1, type: single_choice, question: "在产业链中，最先受益于扩产计划的是哪一环？", options: ["下游应用", "中游制造", "上游设备", "消费者"], answer: 2, explanation: "上游设备最先受益——扩产计划一开始就要采购设备。材料其次，中游最后。" }
+      - { id: q2, type: true_false, question: "产业链中上游涨价会按时间传导到下游", options: [], answer: true, explanation: "正确。这就是产业链传导效应。上游成本变化会延迟1-3个月传递到下游。" }
+      - { id: q3, type: single_choice, question: "SPAS产业链图谱包含多少条产业关联边？", options: ["10+条", "30+条", "60+条", "100+条"], answer: 2, explanation: "SPAS维护了60+条产业链边的行业关联图。" }
+      - { id: q4, type: single_choice, question: "下游需求萎缩时，最先受到影响的应该是？", options: ["上游", "中游", "下游本身", "全链同时"], answer: 2, explanation: "下游最先感受到需求萎缩，然后向上游传导。" }
+      - { id: q5, type: true_false, question: "产业链分析可以用来提前布局和风险预警", options: [], answer: true, explanation: "正确。上游订单暴增→3个月后中游业绩兑现，可以提前布局。下游萎缩→预警全链。" }
+  p3_ch3:
+    questions:
+      - { id: q1, type: single_choice, question: "美林时钟中，'过热期'对应什么强势板块？", options: ["科技", "债券", "大宗商品/资源", "现金"], answer: 2, explanation: "过热期通货膨胀上升，大宗商品和资源类最强。科技对应复苏期。" }
+      - { id: q2, type: single_choice, question: "以下哪个是先行行业？", options: ["银行", "公用事业", "证券", "农业"], answer: 2, explanation: "证券是典型的先行行业，领先大盘1-3周见顶/底。" }
+      - { id: q3, type: single_choice, question: "耗尽指数 > 0.8 表示什么？", options: ["行业冷寂", "行业正常", "行业过度炒作", "行业没人在意"], answer: 2, explanation: "耗尽指数>0.8=行业过度炒作，即将回调，应减仓。" }
+      - { id: q4, type: true_false, question: "一个行业连续大涨5天后，继续大涨的概率比轮动概率大", options: [], answer: false, explanation: "连涨5天后的轮动概率远大于继续涨。不要追涨，等待轮动。" }
+      - { id: q5, type: single_choice, question: "货币政策宽松时，最先启动的板块通常是？", options: ["银行", "证券", "食品饮料", "煤炭"], answer: 1, explanation: "降准降息→证券先行（牛市急先锋），再传导到其他板块。" }
+  p3_ch4:
+    questions:
+      - { id: q1, type: single_choice, question: "选择ETF时，日均成交额的门槛是？", options: [">1000万", ">5000万", ">1亿", "随便都行"], answer: 1, explanation: "日均成交额>5000万的ETF流动性足够，基本不会出现想卖卖不掉的情况。" }
+      - { id: q2, type: single_choice, question: "ETF溢价率 >2% 时应该怎么做？", options: ["赶紧买入", "正常交易", "不买，等溢价回落", "大量卖出"], answer: 2, explanation: "溢价>2%=买的人太多价格虚高，买入就亏了溢价。等回落再买。" }
+      - { id: q3, type: true_false, question: "ETF组合中行业仓位应该占总仓位的40%左右", options: [], answer: true, explanation: "正确。核心仓位60%（宽基ETF）+行业仓位40%（2-3个强势行业）是合理的配置比例。" }
+      - { id: q4, type: single_choice, question: "ETF折价交易（<-2%）对买方来说？", options: ["吃亏", "有利（低价买到）", "无影响", "不能交易"], answer: 1, explanation: "折价=ETF交易价低于真实净值，对买方是有利的——打折买入。" }
+      - { id: q5, type: true_false, question: "小规模ETF（<5亿）可能存在流动性不足的问题", options: [], answer: true, explanation: "正确。小规模ETF买卖价差大、流动性差，大额交易冲击成本高。" }

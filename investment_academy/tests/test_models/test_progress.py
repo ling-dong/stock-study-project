@@ -1,5 +1,5 @@
 """测试进度模型"""
-from models.progress import ChapterProgress, LabProgress
+from core.models.progress import ChapterProgress, LabProgress
 
 
 def test_chapter_progress_default():

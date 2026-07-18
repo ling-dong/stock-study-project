@@ -4,6 +4,10 @@ export function getPhases() {
   return api.get('/content/phases')
 }
 
+export function getChapters(phaseId) {
+  return api.get(`/content/chapters/${phaseId}`)
+}
+
 export function getLabs() {
   return api.get('/content/labs')
 }

@@ -2,7 +2,7 @@
 import yaml
 from pathlib import Path
 
-CONTENT = Path(__file__).resolve().parent.parent.parent / "content"
+CONTENT = Path(__file__).resolve().parent.parent.parent.parent / "content"
 
 
 def find_quiz_files():

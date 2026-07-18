@@ -70,6 +70,12 @@
           </span>
         </div>
         <div class="sb-stat">
+          <span class="sb-stat-label">累计盈亏</span>
+          <span class="sb-stat-value" :class="cumulativeClass">
+            {{ cumulativePnl >= 0 ? '+' : '' }}{{ cumulativePnl.toFixed(2) }} ({{ cumulativePct >= 0 ? '+' : '' }}{{ cumulativePct.toFixed(2) }}%)
+          </span>
+        </div>
+        <div class="sb-stat">
           <span class="sb-stat-label">进度</span>
           <span class="sb-stat-value">{{ state.index + 1 }} / {{ state.totalBars }}</span>
         </div>
@@ -77,7 +83,7 @@
 
       <!-- K线图 -->
       <div class="chart-section card" v-if="bars.length">
-        <KLineChart :bars="bars" :height="360" :markers="chartMarkers" />
+        <KLineChart :bars="bars" :height="360" :markers="chartMarkers" :startMarker="tradeStartDate" :drawMode="drawMode" />
       </div>
 
       <!-- 当前 Bar 信息 -->
@@ -113,13 +119,20 @@
         <button class="btn-advance" @click="doAdvance" :disabled="actionLoading">
           ⏭ 下一天
         </button>
+        <button class="btn-draw" :class="{ active: drawMode }" @click="drawMode = !drawMode">
+          📏 {{ drawMode ? '画线中…' : '画线' }}
+        </button>
 
         <div class="trade-btns">
           <div class="trade-group">
-            <button class="btn-buy" @click="showBuyModal = true" :disabled="actionLoading">
+            <button class="btn-buy" @click="openBuyModal" :disabled="actionLoading">
               🟢 买入
             </button>
             <input v-model.number="buyShares" type="number" class="shares-input" placeholder="股数" min="100" step="100" />
+            <button class="btn-preset" @click="setBuyRatio(0.25)" :disabled="actionLoading">¼仓</button>
+            <button class="btn-preset" @click="setBuyRatio(0.5)" :disabled="actionLoading">½仓</button>
+            <button class="btn-preset" @click="setBuyRatio(0.75)" :disabled="actionLoading">¾仓</button>
+            <button class="btn-preset" @click="setBuyRatio(1)" :disabled="actionLoading">满仓</button>
           </div>
           <div class="trade-group">
             <button class="btn-sell" @click="doSellAll" :disabled="actionLoading || state.shares <= 0">
@@ -244,6 +257,9 @@ export default {
       currentBar: null,
       bars: [],
       allBars: [],
+      preStartCount: 0,
+      tradeStartDate: null,
+      drawMode: false,
       trades: [],
       performance: null,
       portfolioValue: 0,
@@ -258,6 +274,9 @@ export default {
   },
   computed: {
     pnlClass() { return this.pnl >= 0 ? 'green' : 'red' },
+    cumulativePnl() { return this.portfolioValue - this.initCash },
+    cumulativePct() { return this.initCash > 0 ? (this.cumulativePnl / this.initCash) * 100 : 0 },
+    cumulativeClass() { return this.cumulativePnl >= 0 ? 'green' : 'red' },
     chartMarkers() {
       return this.trades.map(t => ({ date: t.date, type: t.action, price: t.price }))
     },
@@ -299,16 +318,22 @@ export default {
         const res = await sandboxInit(this.initETF, this.initTimeframe, this.initCash, this.startDate || undefined)
         this.sessionId = res.data.session_id
         await this.refreshState()
-        // 加载 K 线数据：对齐沙盒起始位置
+        // 加载 K 线数据：含起始日期前 30 根历史 K 线作为分析依据
         const limit = this.initTimeframe === 'day' ? 2000 : 500
         const ohlcvRes = await getETFOHLCV(this.initETF, this.initTimeframe, limit, 0)
         let loaded = ohlcvRes.data.bars || []
-        // 如果选了起始日期，截断到起始日期之后，确保 allBars[0] 对齐沙盒 index=0
+        this.preStartCount = 0
         if (this.startDate) {
           const startIdx = loaded.findIndex(b => b.date >= this.startDate)
-          if (startIdx >= 0) loaded = loaded.slice(startIdx)
+          if (startIdx >= 0) {
+            const historyCount = Math.min(startIdx, 30)  // 最多 30 根历史 K 线
+            this.preStartCount = historyCount
+            loaded = loaded.slice(startIdx - historyCount)  // 从历史起点开始
+          }
         }
         this.allBars = loaded
+        // 标记沙盒交易起点的日期
+        this.tradeStartDate = this.allBars[this.preStartCount]?.date || null
         this.updateBars()
       } catch (e) {
         alert('初始化失败: ' + (e.response?.data?.detail || e.message))
@@ -330,24 +355,24 @@ export default {
       this.updateBars()
     },
     updateBars() {
-      // 显式截取 bars，避免 Vue 2 computed 死区
       if (!this.allBars.length) {
         this.bars = []
         return
       }
-      const end = Math.min(this.state.index + 1, this.allBars.length)
+      // 图表显示：历史 K 线 + 当前沙盒进度
+      const chartEnd = this.preStartCount + this.state.index + 1
+      const end = Math.min(chartEnd, this.allBars.length)
       this.bars = this.allBars.slice(0, end)
     },
     async onStartDateChanged() {
       // 日期变更时预加载，留空即可从头开始
     },
     async loadAvailableDates() {
-      // 为当前选中的 ETF 加载可用起始日期列表
       if (!this.initETF) return
       try {
-        const res = await getETFOHLCV(this.initETF, this.initTimeframe, 2000, 0)
+        // 只加载日期列表，limit=500 足够覆盖全部历史
+        const res = await getETFOHLCV(this.initETF, this.initTimeframe, 500, 0)
         const allBars = res.data.bars || []
-        // 每 20 个交易日取一个日期作为可选起点
         this.availableDates = allBars
           .filter((_, i) => i % 20 === 0 || i === 0)
           .map(b => b.date)
@@ -368,6 +393,26 @@ export default {
       } finally {
         this.actionLoading = false
       }
+    },
+    setBuyRatio(ratio) {
+      // 快捷填入仓位：¼=25%资金, ½=50%, ¾=75%, 满仓=100%
+      if (!this.currentBar) return
+      const price = this.currentBar.close * 1.001  // 含滑点估算
+      const cash = this.state.cash * ratio
+      const shares = Math.floor(cash / price / 100) * 100
+      this.buyShares = Math.max(shares, 0)
+    },
+    openBuyModal() {
+      // 买入前校验
+      if (this.buyShares <= 0 || this.buyShares % 100 !== 0) {
+        alert('A股以手为单位，买入必须是 100 的整数倍')
+        return
+      }
+      if (this.buyShares * (this.currentBar?.close || 0) > this.state.cash) {
+        alert(`资金不足，可用 ${this.state.cash.toLocaleString()} 元`)
+        return
+      }
+      this.showBuyModal = true
     },
     async doBuy() {
       this.showBuyModal = false
@@ -398,8 +443,12 @@ export default {
       }
     },
     async doSellPartial() {
-      if (this.sellShares <= 0 || this.sellShares > this.state.shares) {
-        alert(`可卖出 0 ~ ${this.state.shares} 股`)
+      if (this.sellShares <= 0) {
+        alert('请输入要卖出的股数')
+        return
+      }
+      if (this.sellShares > this.state.shares) {
+        alert(`持仓不足，最多卖出 ${this.state.shares} 股`)
         return
       }
       this.actionLoading = true
@@ -429,6 +478,10 @@ export default {
       this.state = { cash: 0, shares: 0, costBasis: 0, index: 0, totalBars: 0, isDone: false }
       this.currentBar = null
       this.bars = []
+      this.allBars = []
+      this.preStartCount = 0
+      this.tradeStartDate = null
+      this.drawMode = false
       this.trades = []
       this.performance = null
       this.portfolioValue = 0
@@ -492,6 +545,14 @@ export default {
   width: 80px; padding: 0.4rem; background: #0D0D10; border: 1px solid #151518;
   border-radius: 6px; color: #E8E6E3; font-size: 0.82rem; outline: none;
 }
+.btn-preset {
+  padding: 0.3rem 0.45rem; border: 1px solid #2A2A2D; border-radius: 4px;
+  background: transparent; color: #999; font-size: 0.7rem; cursor: pointer; transition: all 0.15s;
+}
+.btn-preset:hover { background: #F0B90B15; border-color: #F0B90B44; color: #F0B90B; }
+.btn-draw { padding: 0.45rem 0.8rem; border-radius: 6px; font-size: 0.82rem; cursor: pointer; border: 1px solid #F0B90B44; background: transparent; color: #F0B90B; transition: all 0.2s; }
+.btn-draw:hover { background: #F0B90B22; }
+.btn-draw.active { background: #F0B90B33; border-color: #F0B90B; }
 .btn-advance, .btn-buy, .btn-sell, .btn-reset, .btn-cancel {
   padding: 0.45rem 1rem; border-radius: 6px; font-size: 0.85rem; cursor: pointer; border: none; transition: opacity 0.2s;
 }

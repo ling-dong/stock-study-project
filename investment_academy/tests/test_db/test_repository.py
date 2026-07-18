@@ -1,7 +1,7 @@
 """测试 SQLite repository（使用临时数据库）"""
 import os
 import tempfile
-from db import repository
+from core.db import repository
 
 
 def _use_temp_db():

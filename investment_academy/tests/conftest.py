@@ -14,7 +14,7 @@ if str(ACADEMY_ROOT) not in sys.path:
 @pytest.fixture
 def temp_db():
     """创建临时数据库并注入到 repository"""
-    from db import repository
+    from core.db import repository
     tmp = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
     tmp.close()
     old_path = repository.DB_PATH

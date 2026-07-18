@@ -1,7 +1,7 @@
 """用户系统 — 偏好 + 心理自检 + 交易日志"""
 from fastapi import APIRouter, HTTPException
 import json
-from db.repository import (
+from core.db.repository import (
     get_user_preferences,
     save_user_preferences,
     save_psychology_check,

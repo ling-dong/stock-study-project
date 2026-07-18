@@ -1,6 +1,6 @@
 """学习进度 — CRUD"""
 from fastapi import APIRouter, HTTPException
-from db.repository import (
+from core.db.repository import (
     get_all_chapter_progress,
     get_chapter_progress,
     save_chapter_progress,

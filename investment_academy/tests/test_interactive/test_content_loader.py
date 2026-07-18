@@ -1,5 +1,5 @@
 """测试内容加载器"""
-from interactive.content_loader import (
+from core.engine.content_loader import (
     list_phases, list_labs, load_chapter, load_quiz, load_lab_guide
 )
 

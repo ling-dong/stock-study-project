@@ -1,0 +1,29 @@
+chapters:
+  p7_ch1:
+    questions:
+      - { id: q1, type: single_choice, question: "Walk-Forward回测的核心原理是什么？", options: ["用全部数据训练和测试", "训练窗口和测试窗口永不重叠", "只用最近数据", "随机切分数据"], answer: 1, explanation: "WF的核心=训练集和测试集在时间上严格分离且永不重叠。未来数据绝不用于训练。" }
+      - { id: q2, type: single_choice, question: "SPAS使用什么大小的Walk-Forward窗口？", options: ["1+1", "6+1（6月训练+1月测试）", "12+3", "3+3"], answer: 1, explanation: "SPAS用6个月训练+1个月测试，每月滚动一次。" }
+      - { id: q3, type: single_choice, question: "Walk-Forward回测的月度胜率合格线是？", options: [">40%", ">55%", ">80%", "随便"], answer: 1, explanation: "月度胜率>55%=合格，>65%=优秀。WF胜率是经过前视偏差修正后的真实指标。" }
+      - { id: q4, type: true_false, question: "Walk-Forward中连续亏损4个月以上是正常的", options: [], answer: false, explanation: "连续亏损>4个月=策略可能存在问题，需要深度复盘。1-3个月连续亏损在统计上可能发生。" }
+      - { id: q5, type: single_choice, question: "WF回测和实盘表现的差距反映了什么？", options: ["运气", "策略的过拟合程度", "市场变化", "笔误"], answer: 1, explanation: "差距越小=策略越可靠。差距持续>30%=策略可能过拟合或有未检测到的偏差。" }
+  p7_ch2:
+    questions:
+      - { id: q1, type: single_choice, question: "前视偏差是什么？", options: ["看未来走势", "在回测中使用了当时未知的信息", "过度交易", "预测太准"], answer: 1, explanation: "前视偏差=在'今天'的决策中使用了'未来'的信息。这是回测中最常见也最隐蔽的错误。" }
+      - { id: q2, type: single_choice, question: "用今天的收盘价计算信号并在今天开盘入场，属于什么错误？", options: ["正确做法", "前视偏差—收盘价在开盘时未知", "无影响", "过拟合"], answer: 1, explanation: "今天收盘时才知道收盘价，但今天开盘就做了决策→信息泄露=前视偏差。" }
+      - { id: q3, type: true_false, question: "回测中不处理停牌和涨跌停会导致虚高收益", options: [], answer: true, explanation: "正确。停牌和涨跌停日无法交易，如果回测假设这些日子能交易→虚高了收益。" }
+      - { id: q4, type: single_choice, question: "避免前视偏差最核心的技术手段是什么？", options: ["多训练几遍", "时点标记（Point-in-Time）", "增加特征", "减少数据"], answer: 1, explanation: "时点标记=每个计算值记录它被计算的时间点，确保回测只用该时点之前的已知数据。" }
+      - { id: q5, type: true_false, question: "幸存者偏差也会导致回测收益被高估", options: [], answer: true, explanation: "正确。回测只测试了还存活的ETF，退市的被排除了→高估了策略的真实收益。" }
+  p7_ch3:
+    questions:
+      - { id: q1, type: single_choice, question: "评价策略的四个维度不包括什么？", options: ["胜率", "盈亏比", "交易颜色", "交易频率"], answer: 2, explanation: "四维=胜率+盈亏比+期望值+交易频率。交易颜色不是评价维度。" }
+      - { id: q2, type: single_choice, question: "含成本的期望值=裸期望值-什么？", options: ["印花税", "(佣金+印花税+滑点+冲击成本)×交易频率", "只有佣金", "不用减"], answer: 1, explanation: "成本侵蚀=每次交易的所有摩擦成本×交易次数。高频策略受成本影响最大。" }
+      - { id: q3, type: single_choice, question: "夏普比率<0.5表示策略？", options: ["非常好", "合格", "不合格", "无法判断"], answer: 2, explanation: "夏普<0.5=不合格。每单位风险获得的超额收益太少，不值得承担风险。" }
+      - { id: q4, type: single_choice, question: "Brier分数衡量的是什么？", options: ["趋势强度", "概率预测的准确度", "交易速度", "成交量"], answer: 1, explanation: "Brier分数=衡量概率预测质量。Brier=(预测概率−实际结果)²的均值。" }
+      - { id: q5, type: true_false, question: "A股卖出ETF需要交印花税", options: [], answer: false, explanation: "错误。ETF交易免印花税，这是ETF相对于个股的一个重要优势。" }
+  p7_ch4:
+    questions:
+      - { id: q1, type: single_choice, question: "完整交易系统有几层架构？", options: ["3层", "5层", "7层", "1层"], answer: 1, explanation: "5层=数据→预测→风控→心理→评估。每一层都不可或缺。" }
+      - { id: q2, type: single_choice, question: "上午开盘后多久开始交易最合理？", options: ["立即", "观察30分钟后", "等2小时", "想到就买"], answer: 1, explanation: "开盘30分钟内价格受集合竞价和隔夜信息影响，波动大且方向不确定。等30分钟让市场稳定。" }
+      - { id: q3, type: single_choice, question: "每几个月应该做一次系统层面的大复盘？", options: ["1个月", "3个月", "1年", "不需要"], answer: 1, explanation: "每3个月做一次系统大复盘：评估策略适应性、调整权重、检测过拟合。" }
+      - { id: q4, type: single_choice, question: "第一个月的实盘交易，仓位建议？", options: ["ALL-IN", "不超过总资金10%", "50%", "无所谓"], answer: 1, explanation: "阶段1先用小资金验证（≤10%），积累30+条日志后再考虑加仓。" }
+      - { id: q5, type: true_false, question: "一个完整的交易系统不会亏损", options: [], answer: false, explanation: "任何系统都会亏损。完整的系统=亏损在预期范围内且你能持续执行下去，而非不亏损。" }

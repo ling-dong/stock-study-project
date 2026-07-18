@@ -1,0 +1,43 @@
+chapters:
+  p6_ch1:
+    questions:
+      - { id: q1, type: single_choice, question: "趋势跟踪型交易者的特点是什么？", options: ["频繁操作", "耐心、能承受回撤", "快速进出", "不持仓"], answer: 1, explanation: "趋势跟踪者需要耐心等待趋势形成和延续，能承受过程中的合理回撤。" }
+      - { id: q2, type: single_choice, question: "账户回撤10%时应该？", options: ["加仓摊低成本", "按计划止损/减仓", "瘫软不动", "ALL-IN"], answer: 1, explanation: "回撤10%应按计划处理而非情绪化反应。止损是计划内的事，不是临时决定。" }
+      - { id: q3, type: true_false, question: "同一个策略适合所有人", options: [], answer: false, explanation: "不同的人有不同的性格和风险偏好。策略必须匹配执行者的性格。" }
+      - { id: q4, type: single_choice, question: "一个好的策略最重要的特征是？", options: ["历史收益最高", "你能够稳定、持续、无痛苦地执行", "最复杂", "别人都在用"], answer: 1, explanation: "策略的核心不是'最优'，是'你能坚持执行'。让你睡不着觉的策略再好在你的手里也赚不到钱。" }
+      - { id: q5, type: single_choice, question: "连续盈利后加大仓位属于什么行为？", options: ["纪律操作", "过度自信", "合理加仓", "止损"], answer: 1, explanation: "连续盈利后膨胀自信→加大仓位→在下一次亏损中遭受重创。应保持固定仓位比例。" }
+  p6_ch2:
+    questions:
+      - { id: q1, type: single_choice, question: "FOMO 是指什么？", options: ["对亏损的恐惧", "害怕错过行情而追高买入", "对风险的敬畏", "一种交易策略"], answer: 1, explanation: "FOMO = Fear Of Missing Out，看到涨就忍不住追，往往买在最高点。" }
+      - { id: q2, type: single_choice, question: "Tilt状态最典型的表现是什么？", options: ["严格遵守计划", "违反交易计划+加大仓位+频繁交易", "正常观望", "冷静分析"], answer: 1, explanation: "Tilt=情绪导致的判断力丧失，表现包括违反计划、加大仓位、频繁交易、忽视止损。" }
+      - { id: q3, type: single_choice, question: "复仇交易是指什么？", options: ["为朋友交易", "亏损后不甘心加大仓位想赚回来", "按计划交易", "长期投资"], answer: 1, explanation: "复仇交易=亏后不甘心→加大仓位→更大亏损=最常见的亏损加速器。" }
+      - { id: q4, type: true_false, question: "情绪日志只需要记录盈亏，不需要记录情绪状态", options: [], answer: false, explanation: "错误的交易往往伴随情绪波动。情绪数据（1-5分）比盈亏数据更能揭示亏损的根源。" }
+      - { id: q5, type: single_choice, question: "出现强烈FOMO冲动时最好怎么做？", options: ["立即买入", "离开屏幕5分钟再决定", "加大仓位买入", "问别人要不要买"], answer: 1, explanation: "FOMO是情绪驱动的冲动。暂停5分钟让理性重新接管是最简单有效的方法。" }
+  p6_ch3:
+    questions:
+      - { id: q1, type: single_choice, question: "确认偏差是指什么？", options: ["客观看所有信息", "只看支持自己判断的信息", "完全不信任何信息", "随机选择信息"], answer: 1, explanation: "确认偏差=选择性接收支持自己已有判断的信息，忽略反面证据。" }
+      - { id: q2, type: single_choice, question: "买入价成为'锚'导致不能止损属于什么偏差？", options: ["确认偏差", "锚定效应", "近因偏差", "无偏差"], answer: 1, explanation: "买入价成了你判断的'锚'。正确做法：以空仓视角重新问'现在会不会在这个价位买入？'" }
+      - { id: q3, type: single_choice, question: "损失厌恶导致的行为通常是？", options: ["该止损不止损+该止盈过早止盈", "严格止损", "让利润奔跑", "理性决策"], answer: 0, explanation: "人对亏损的敏感是利润的2-2.5倍。这导致应止损时犹疑、应持仓时过早止盈。" }
+      - { id: q4, type: true_false, question: "最近3-5次交易的盈亏情况应该作为评估策略的主要依据", options: [], answer: false, explanation: "这就是近因偏差。3-5次的小样本不能代表策略的真实表现。看大样本数据。" }
+      - { id: q5, type: single_choice, question: "对抗确认偏差最有效的方法是什么？", options: ["不看任何信息", "刻意找一个反向观点来看", "多找朋友确认", "相信直觉"], answer: 1, explanation: "刻意看相反观点是对抗确认偏差的最直接方法。在做多前至少读一篇看空分析。" }
+  p6_ch4:
+    questions:
+      - { id: q1, type: single_choice, question: "交易前Checklist的第一项应该检查什么？", options: ["个股消息", "大盘环境（EMA20、市场状态、ADX）", "别人买了没", "今日涨跌幅"], answer: 1, explanation: "先看大盘环境。大盘不好时最好的个股信号成功率也会大幅下降。" }
+      - { id: q2, type: single_choice, question: "以下哪种情况绝对不能交易？", options: ["ADX=25", "刚止损后的30分钟内", "EMA20向上", "R:R=2:1"], answer: 1, explanation: "刚止损后情绪不稳定，30分钟内做的任何决策大概率是情绪驱动的，不是理性判断。" }
+      - { id: q3, type: single_choice, question: "大盘在EMA20之下时应该？", options: ["正常仓位", "半仓", "翻倍仓位", "无所谓"], answer: 1, explanation: "大盘在EMA20之下=短期偏空，应该半仓降低风险敞口。" }
+      - { id: q4, type: single_choice, question: "每月复盘中最重要的是看什么？", options: ["只看到月盈亏", "盈亏+违反规则的次数+Tilt次数", "别人赚了多少", "不需要复盘"], answer: 1, explanation: "月度复盘需看三样：盈亏（结果）、违反规则次数（纪律）、Tilt次数（情绪）。" }
+      - { id: q5, type: true_false, question: "重大数据发布前30分钟应该增加仓位", options: [], answer: false, explanation: "错误。新闻发布前方向不可预测，应禁止开仓等待数据公布。" }
+  p6_ch5:
+    questions:
+      - { id: q1, type: single_choice, question: "恐惧贪婪指数在25以下应该？", options: ["卖出", "可以买入", "不做任何操作", "全仓"], answer: 1, explanation: "极度恐惧时别人在抛售但你该贪婪——巴菲特的名言：别人恐惧时贪婪。" }
+      - { id: q2, type: single_choice, question: "'这次不一样'为什么被称作最危险的四个字？", options: ["因为每次都一样", "因为它让人忽视历史规律和风险", "因为它带来收益", "无特殊含义"], answer: 1, explanation: "'这次不一样'=人们相信自己处于一个'新范式'中，历史规律不再适用。这往往在泡沫顶峰出现。" }
+      - { id: q3, type: single_choice, question: "新开户数激增往往是？", options: ["底部信号", "顶部信号", "无意义的指标", "牛市开始"], answer: 1, explanation: "散户大量涌入=市场情绪极度亢奋=顶部区域。这是历史反复验证的规律。" }
+      - { id: q4, type: single_choice, question: "放量下跌通常说明？", options: ["健康上涨", "恐慌性抛售，近期可能见底", "没人交易", "毫无意义"], answer: 1, explanation: "放量下跌=恐慌盘出清，往往是底部信号。缩量下跌才是阴跌。" }
+      - { id: q5, type: true_false, question: "媒体一致看多时是最安全的买入时机", options: [], answer: false, explanation: "错误。舆论高度一致=市场情绪已达极端=随时反转。一致看多是危险信号而非安全信号。" }
+  p6_ch6:
+    questions:
+      - { id: q1, type: single_choice, question: "交易日志中最不应该省略的字段是？", options: ["交易金额", "情绪评分", "券商名称", "买入时间（精确到秒）"], answer: 1, explanation: "情绪评分是最容易被忽略但最有价值的数据。它帮你发现哪些情绪状态下容易亏钱。" }
+      - { id: q2, type: single_choice, question: "积累多少条日志后可以开始分析自己的交易模式？", options: ["10条", "50-100条", "5条", "不需要"], answer: 1, explanation: "50-100条才有足够样本进行统计分析。太少的数据得出的结论不可靠。" }
+      - { id: q3, type: single_choice, question: "错误模式库的作用是什么？", options: ["记录别人的错误", "归纳自己的重复错误并制定对策", "没事写着玩", "给别人看"], answer: 1, explanation: "错误模式库=将自己的重复亏损模式归类→分析根因→制定防范措施。这是复盘的核心产出。" }
+      - { id: q4, type: true_false, question: "盈利>5%后应该设保本止损", options: [], answer: true, explanation: "正确。盈利>5%后设保本止损=保证这笔交易至少不亏钱，防止'盈利变亏损'。" }
+      - { id: q5, type: single_choice, question: "从日志中发现下午14:00-15:00的交易胜率只有35%，应该？", options: ["继续下午交易", "加大下午仓位", "下午不交易", "不改变"], answer: 2, explanation: "数据告诉你下午交易胜率低→应该听数据的：下午不交易。这是用日志数据驱动行为改变的标准做法。" }

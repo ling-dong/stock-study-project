@@ -11,3 +11,5 @@ venv/
 data/*.parquet
 .superpowers/
 investment_academy/db/academy.db
+investment_academy/core/db/academy.db
+investment_academy/frontend/node_modules/

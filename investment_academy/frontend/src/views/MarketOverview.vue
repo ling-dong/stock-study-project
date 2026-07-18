@@ -9,8 +9,12 @@
     <h1>🏦 市场概览</h1>
     <p class="page-desc">SPAS 系统沉淀的投资知识资产</p>
 
+    <!-- 加载状态 -->
+    <div v-if="loading" class="loading">加载市场数据…</div>
+    <div v-else-if="error" class="loading">{{ error }}</div>
+
     <!-- 行业板块 -->
-    <h2>📊 行业板块</h2>
+    <h2 v-if="!loading">📊 行业板块</h2>
     <div class="sector-grid" v-if="sectors.length">
       <div v-for="s in sectors" :key="s.id" class="sector-card card">
         <div class="sector-header">
@@ -107,6 +111,8 @@ export default {
       marketParams: null,
       riskConstraints: [],
       setups: [],
+      loading: true,
+      error: null,
     }
   },
   async created() {
@@ -121,6 +127,9 @@ export default {
       this.setups = setupsRes.data || []
     } catch (e) {
       console.error('加载市场概览失败:', e)
+      this.error = '加载失败，请确认后端已启动'
+    } finally {
+      this.loading = false
     }
   },
 }

@@ -1,0 +1,43 @@
+chapters:
+  p2_ch1:
+    questions:
+      - { id: q1, type: single_choice, question: "ADX 值 25 表示什么？", options: ["无趋势/震荡", "趋势形成中", "趋势明确", "强趋势"], answer: 2, explanation: "ADX 18-25 趋势形成中，25-40 趋势明确。25 属于趋势明确。" }
+      - { id: q2, type: single_choice, question: "上升趋势的特征是？", options: ["高点越来越高+低点越来越低", "高点越来越低+低点越来越低", "高点越来越高+低点越来越高", "高点越来越低+低点越来越高"], answer: 2, explanation: "上升趋势 = 高点不断抬高 + 低点不断抬高。道氏理论的基本定义。" }
+      - { id: q3, type: true_false, question: "ADX 可以指示趋势方向", options: [], answer: false, explanation: "ADX 只衡量趋势强度，不指示方向。方向看均线或+DI/-DI。" }
+      - { id: q4, type: single_choice, question: "多时间框架分析的原则是？", options: ["小框架服从大框架", "大框架服从小框架", "各框架独立判断", "只看日线即可"], answer: 0, explanation: "日线看空时不做多，小框架永远服从大框架。这是多时间框架分析的铁律。" }
+      - { id: q5, type: single_choice, question: "EMA(20) 的主要用途是？", options: ["精确择时", "判断短期趋势方向", "计算目标价位", "预测明日价格"], answer: 1, explanation: "EMA(20) 是判断短期趋势方向的核心基准。价格在 EMA20 之上偏多，之下偏空。" }
+  p2_ch2:
+    questions:
+      - { id: q1, type: single_choice, question: "实体比 body_ratio 的计算公式是？", options: ["Open/Close", "(High-Low)/Close", "|Close-Open|/(High-Low)", "(Close-Open)/(High-Low)"], answer: 2, explanation: "body_ratio = |Close - Open| / (High - Low)，衡量博弈强度。" }
+      - { id: q2, type: single_choice, question: "收盘位置 close_position 接近 1 说明什么？", options: ["买方强势收盘", "卖方强势收盘", "多空均衡", "成交量异常"], answer: 0, explanation: "close_position ≈ 1 表示收盘在最高点，买方完全掌控，次日大概率高开。" }
+      - { id: q3, type: single_choice, question: "长上影线（upper_shadow > 0.4）在上涨趋势中出现，通常意味着？", options: ["趋势加速", "上方抛压重，可能见顶", "买方力量增强", "无意义"], answer: 1, explanation: "上涨趋势中长上影线 = 价格冲高后被压回，是高位出货的警示信号。" }
+      - { id: q4, type: true_false, question: "下跌趋势中出现长下影线是抄底资金介入的信号", options: [], answer: true, explanation: "正确。价格下探后被迅速拉起，说明下方有支撑力量。" }
+      - { id: q5, type: multi_choice, question: "以下哪些是看涨 K 线组合的特征？（多选）", options: ["实体比 > 0.5", "收盘位置 > 0.7", "长上影线", "长下影线(在上涨趋势中)"], answer: [0, 1], explanation: "大实体+高位收盘是看涨组合。长上影线是抛压信号，不是看涨。" }
+  p2_ch3:
+    questions:
+      - { id: q1, type: single_choice, question: "均线多头排列的正确顺序是？", options: ["EMA60>EMA20>EMA10>EMA5", "EMA5>EMA10>EMA20>EMA60", "EMA20>EMA60>EMA5>EMA10", "任意顺序都行"], answer: 1, explanation: "多头排列 = 短期均线在上、长期在下。EMA5 > EMA10 > EMA20 > EMA60。" }
+      - { id: q2, type: single_choice, question: "金叉是指什么？", options: ["长期MA下穿短期MA", "短期MA上穿长期MA", "MA走平", "MA消失"], answer: 1, explanation: "金叉 = 短期均线上穿长期均线，是看涨信号，但属滞后信号。" }
+      - { id: q3, type: true_false, question: "均线交叉是精确的转折点信号", options: [], answer: false, explanation: "均线交叉是滞后信号，适合确认趋势，不适合精确择时。" }
+      - { id: q4, type: single_choice, question: "ADX 上升且 +DI > -DI 表示？", options: ["下降趋势加强", "上升趋势加强", "震荡", "不确定"], answer: 1, explanation: "ADX 上升确认趋势，+DI > -DI 表示多方占优 → 上升趋势加强。" }
+      - { id: q5, type: single_choice, question: "均线缠绕通常表示什么市场状态？", options: ["牛市", "熊市", "震荡市", "趋势加速"], answer: 2, explanation: "均线缠绕 = 没有明确的上下关系 = 市场无方向 = 震荡市。" }
+  p2_ch4:
+    questions:
+      - { id: q1, type: single_choice, question: "Wyckoff 第一定律（供需法则）说的是什么？", options: ["价格随机游走", "价格由供需关系决定", "价格由心理预期决定", "价格由新闻驱动"], answer: 1, explanation: "Wyckoff 第一定律即供需法则：价格由买卖力量的对比决定。" }
+      - { id: q2, type: single_choice, question: "H2 Setup 是什么信号？", options: ["熊市双顶反弹", "牛市双底回调（延续）", "假突破反转", "震荡突破"], answer: 1, explanation: "H2 = 上升趋势中的两段式回调，后一个低点高于前一个，是牛市延续信号。" }
+      - { id: q3, type: single_choice, question: "FB（假突破）的基础胜率约为？", options: ["65%", "55%", "45%", "35%"], answer: 2, explanation: "FB 基础胜率约 45%，低于 H2/L2 的 55%。假突破识别难度更高。" }
+      - { id: q4, type: single_choice, question: "Wyckoff 积累阶段的核心特征是什么？", options: ["价格持续大涨", "价格在区间内横盘+成交量萎缩", "单日放量暴跌", "价格创新高"], answer: 1, explanation: "积累阶段 = 区间横盘 + 成交量逐步萎缩 + 突然的 Spring（弹簧）测试。" }
+      - { id: q5, type: true_false, question: "成交量放大但价格不动，说明趋势健康", options: [], answer: false, explanation: "量价背离（努力 vs 回报不匹配）= 趋势遇到阻力，可能反转。" }
+  p2_ch5:
+    questions:
+      - { id: q1, type: single_choice, question: "多时间框架分析中，战略层是哪个框架？", options: ["5分钟线", "60分钟线", "日线", "月线"], answer: 2, explanation: "战略层=日线，决定方向（多/空/观望）。" }
+      - { id: q2, type: true_false, question: "60分钟线出现买入信号但日线看空，应该买入", options: [], answer: false, explanation: "小框架永远服从大框架。日线看空时任何买入信号都应忽略。" }
+      - { id: q3, type: single_choice, question: "多框架分析中'共振'是什么意思？", options: ["各框架信号冲突", "各框架信号方向一致", "只有一个框架有信号", "没有框架有信号"], answer: 1, explanation: "共振=所有框架方向一致，是最强信号。" }
+      - { id: q4, type: single_choice, question: "SPAS 融合层的动态权重取决于什么？", options: ["固定不变", "近期准确率+ADX+波动率", "随机调整", "交易次数"], answer: 1, explanation: "权重=f(近期准确率, ADX, 波动率)。表现好→权重高，趋势强→权重高。" }
+      - { id: q5, type: true_false, question: "多框架方向不一致时，应该按日线方向操作", options: [], answer: true, explanation: "正确。框架不一致时服从最大框架。如果日线也缺乏方向→观望。" }
+  p2_ch6:
+    questions:
+      - { id: q1, type: single_choice, question: "Al Brooks 认为市场多少时间处于交易区间？", options: ["约20%", "约50%", "约80%", "约100%"], answer: 2, explanation: "Brooks 指出约80%的价格行为发生在交易区间中，强趋势只占约20%。" }
+      - { id: q2, type: single_choice, question: "Brooks 体系中'二次入场'为什么比一次入场更可靠？", options: ["因为价格更低", "两次逆势失败确认顺势方更强", "因为随机猜测", "没有区别"], answer: 1, explanation: "第一次回调可能是反转开始，第二次回调确认逆势方没有力量。两次失败=顺势更强。" }
+      - { id: q3, type: single_choice, question: "信号棒的收盘位置比实体大小更重要，为什么？", options: ["实体大小没意义", "收盘位置告诉你收盘时谁在掌控", "两者一样重要", "取决于时间框架"], answer: 1, explanation: "收盘位置反映最终博弈结果。大实体但收在中间的阳线不如小实体但收在最高点的阳线。" }
+      - { id: q4, type: single_choice, question: "Brooks 定义的'趋势棒'核心特征是什么？", options: ["上下影线都很长", "实体>影线，方向明确", "成交量巨大", "价格波动很大"], answer: 1, explanation: "趋势棒=开盘到收盘有明确实体且实体大于影线，表示一方掌控。" }
+      - { id: q5, type: true_false, question: "Brooks 和 Wyckoff 理论互相冲突，不能同时使用", options: [], answer: false, explanation: "两者互补——Wyckoff 看大局（积累/派发），Brooks 看 K 线细节（信号棒/趋势棒）。" }

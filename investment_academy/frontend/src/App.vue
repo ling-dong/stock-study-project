@@ -50,6 +50,9 @@
         <router-link to="/market-overview" class="nav-item" active-class="nav-item--active">
           <span class="nav-label">🏦 市场概览</span>
         </router-link>
+        <router-link to="/spas" class="nav-item" active-class="nav-item--active">
+          <span class="nav-label">🤖 预测信号</span>
+        </router-link>
       </nav>
 
       <div class="sidebar-footer">
@@ -130,11 +133,15 @@ export default {
 .sidebar {
   width: 240px;
   min-width: 240px;
+  height: 100vh;
+  position: sticky;
+  top: 0;
   background: #050506;
   border-right: 1px solid #151518;
   display: flex;
   flex-direction: column;
   padding: 1.5rem 0;
+  overflow-y: auto;
 }
 
 .sidebar-brand {
@@ -228,7 +235,6 @@ export default {
   flex: 1;
   padding: 2rem 2.5rem;
   max-width: 1100px;
-  overflow-y: auto;
 }
 
 /* === Typography === */
