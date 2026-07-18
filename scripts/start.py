@@ -27,21 +27,21 @@ async def cmd_backtest(args):
 def cmd_serve(args):
     """Step 4: 启动API服务"""
     import uvicorn
-    from src.pipeline.orchestrator import PipelineOrchestrator
+    from src.signals.service import SPASService
     from src.signals.api import create_app
 
     print("=" * 60)
-    print("  SPAS API Server — http://127.0.0.1:8080")
+    print("  SPAS API Server — http://127.0.0.1:8000")
     print("  Endpoints:")
-    print("    GET /system/status   — 系统状态")
-    print("    GET /system/version  — 版本信息")
-    print("    GET /signals/latest  — 最新信号")
-    print("    GET /signals/history?limit=N — 历史信号")
+    print("    GET /api/spas/signal/{code}          — 运行 SPAS 流水线")
+    print("    GET /api/spas/market/etfs            — ETF 列表")
+    print("    GET /api/spas/market/etf/{code}/ohlcv — OHLCV 数据")
+    print("    GET /api/spas/system/status          — 系统状态")
     print("=" * 60)
 
-    orch = PipelineOrchestrator()
-    app = create_app(orch)
-    uvicorn.run(app, host="127.0.0.1", port=8080)
+    service = SPASService()
+    app = create_app(service)
+    uvicorn.run(app, host="127.0.0.1", port=8000)
 
 
 async def cmd_all(args):

@@ -20,6 +20,11 @@ class LocalAdapter(DataAdapter):
         df = pd.read_parquet(file_path)
         if df.empty:
             return df
+
+        # 统一时间列名
+        time_cols = [c for c in df.columns if c.lower() in ("timestamp", "trade_date", "date")]
+        if time_cols:
+            df = df.rename(columns={time_cols[0]: "timestamp"})
         if "timestamp" in df.columns:
             df["timestamp"] = pd.to_datetime(df["timestamp"])
             if start: df = df[df["timestamp"] >= start]
