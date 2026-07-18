@@ -461,7 +461,7 @@
 </template>
 
 <script>
-import { analyzeETF, getSystemInfo, triggerDataUpdate, getHistory, getHistoryDetail, deleteHistory } from '../api/spas'
+import { analyzeETF, getSystemInfo, triggerDataUpdate, getHistory, getHistoryDetail, deleteHistory } from '../api/manualAnalysis'
 import { getETFs, getETFName } from '../api/market'
 
 const DEFAULT_FORM = {

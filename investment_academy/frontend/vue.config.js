@@ -2,8 +2,12 @@ module.exports = {
   devServer: {
     port: 8080,
     proxy: {
-      '/api': {
+      '/api/spas': {
         target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+      '/api': {
+        target: 'http://localhost:8001',
         changeOrigin: true,
       }
     }

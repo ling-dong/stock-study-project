@@ -51,7 +51,10 @@
           <span class="nav-label">🏦 市场概览</span>
         </router-link>
         <router-link to="/spas" class="nav-item" active-class="nav-item--active">
-          <span class="nav-label">🤖 预测信号</span>
+          <span class="nav-label">🤖 SPAS 自动信号</span>
+        </router-link>
+        <router-link to="/manual-analysis" class="nav-item" active-class="nav-item--active">
+          <span class="nav-label">🧮 手动指标分析</span>
         </router-link>
       </nav>
 

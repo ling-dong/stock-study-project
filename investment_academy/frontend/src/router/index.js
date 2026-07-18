@@ -12,6 +12,7 @@ import PsychologyCheck from '../views/PsychologyCheck.vue'
 import TradingJournal from '../views/TradingJournal.vue'
 import MarketOverview from '../views/MarketOverview.vue'
 import SPASPrediction from '../views/SPASPrediction.vue'
+import SPASSignal from '../views/SPASSignal.vue'
 
 const routes = [
   { path: '/', name: 'Home', component: Home },
@@ -24,7 +25,8 @@ const routes = [
   { path: '/psychology', name: 'PsychologyCheck', component: PsychologyCheck },
   { path: '/journal', name: 'TradingJournal', component: TradingJournal },
   { path: '/market-overview', name: 'MarketOverview', component: MarketOverview },
-  { path: '/spas', name: 'SPASPrediction', component: SPASPrediction },
+  { path: '/spas', name: 'SPASSignal', component: SPASSignal },
+  { path: '/manual-analysis', name: 'SPASPrediction', component: SPASPrediction },
 ]
 
 const router = new VueRouter({
