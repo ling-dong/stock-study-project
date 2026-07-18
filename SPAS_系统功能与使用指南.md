@@ -512,7 +512,9 @@ python scripts/start.py backtest
 python scripts/start.py serve
 ```
 
-启动 FastAPI 服务，访问 http://127.0.0.1:8080
+启动 SPAS API 服务，访问 http://127.0.0.1:8000
+
+> 也可使用 `python scripts/start_all.py` 一键启动 SPAS API + Investment Academy 后端 + Vue2 前端。
 
 ### 7.3 专项分析
 
@@ -577,30 +579,41 @@ python scripts/diagnose_power.py
 
 ## 9. API 接口
 
-启动服务后（`python scripts/start.py serve`），服务运行在 `http://127.0.0.1:8080`：
+启动服务后（`python scripts/start.py serve`），SPAS 核心 API 运行在 `http://127.0.0.1:8000`：
 
 ### 接口列表
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| GET | `/system/status` | 系统运行状态、最后信号时间、信号总数 |
-| GET | `/system/version` | 系统版本信息（四子版本标识） |
-| GET | `/signals/latest` | 最新交易信号（完整字段） |
-| GET | `/signals/history?limit=N` | 最近 N 条历史信号（默认20，最大100） |
+| GET | `/api/spas/system/status` | 系统状态 |
+| GET | `/api/spas/signal/{code}` | 对指定 ETF 运行完整 SPAS 流水线 |
+| GET | `/api/spas/market/etfs` | 可用 ETF 列表 |
+| GET | `/api/spas/market/etfs/meta` | ETF 元数据概览 |
+| GET | `/api/spas/market/etf/{code}/ohlcv` | ETF OHLCV 数据 |
+| GET | `/system/status` | 兼容旧端点：系统状态 |
+| GET | `/system/version` | 兼容旧端点：系统版本 |
+| GET | `/signals/latest` | 兼容旧端点：最新信号（内存中） |
+| GET | `/signals/history?limit=N` | 兼容旧端点：历史信号（内存中） |
 
 ### 信号响应字段
 
 ```json
 {
-  "symbol": "510300.SH",
+  "symbol": "512480.SH",
   "timestamp": "2026-06-25T00:00:00",
-  "setup_type": "H2",
-  "direction_prob": 0.5500,
-  "target_prob": 0.3850,
-  "stop_prob": 0.3600,
-  "r_r_ratio": 2.00,
-  "expected_value": 0.005300,
-  "confidence_level": "medium"
+  "current_price": 2.943,
+  "market_state": {"state": "bull", "confidence": 0.9, "duration": 13},
+  "setup_summary": {"confirmed_count": 44, "candidate_count": 71},
+  "prediction": {
+    "direction_prob": 0.5500,
+    "target_prob": 0.3850,
+    "stop_prob": 0.3600,
+    "r_r_ratio": 2.00,
+    "expected_value": 0.005300,
+    "confidence_level": "medium",
+    "setup_type": "H2"
+  },
+  "risk": {"kelly_position": 0.04, "risk_ok": true}
 }
 ```
 
