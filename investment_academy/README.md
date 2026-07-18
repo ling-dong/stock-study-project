@@ -24,6 +24,8 @@ cd D:\stock_market
 python scripts/start_all.py
 ```
 
+> Windows 用户也可直接双击项目根目录的 `start_all.bat` 一键启动。
+
 该脚本会同时启动：
 - SPAS Core API — http://127.0.0.1:8000
 - Investment Academy Backend — http://127.0.0.1:8001
@@ -56,6 +58,8 @@ npm run serve
 cd D:\stock_market
 python scripts/stop_all.py
 ```
+
+> Windows 用户也可直接双击项目根目录的 `stop_all.bat` 一键关闭。
 
 ---
 
@@ -496,6 +500,7 @@ GET /api/spas/system/status          → SPAS 系统状态
 # 一键启动全栈（SPAS API + Academy 后端 + Vue 前端）
 cd D:\stock_market
 python scripts/start_all.py
+# Windows 用户也可直接双击 start_all.bat
 
 # 仅启动 Academy 后端（手动）
 cd D:\stock_market\investment_academy
@@ -507,6 +512,7 @@ npm run serve
 
 # 一键关闭
 python scripts/stop_all.py
+# Windows 用户也可直接双击 stop_all.bat
 
 # 安装依赖
 pip install -r requirements.txt

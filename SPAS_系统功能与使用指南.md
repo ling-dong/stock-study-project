@@ -514,7 +514,7 @@ python scripts/start.py serve
 
 启动 SPAS API 服务，访问 http://127.0.0.1:8000
 
-> 也可使用 `python scripts/start_all.py` 一键启动 SPAS API + Investment Academy 后端 + Vue2 前端。
+> 也可使用 `python scripts/start_all.py` 一键启动，或在 Windows 上直接双击 `start_all.bat`。
 
 ### 7.3 专项分析
 
@@ -567,7 +567,9 @@ python scripts/diagnose_power.py
 |------|------|
 | `scripts/start.py` | **主入口**，支持 fetch/pipeline/backtest/serve/all 五个子命令 |
 | `scripts/start_all.py` | 一键启动 SPAS API + Investment Academy 后端 + Vue2 前端 |
+| `start_all.bat` | Windows 一键启动（双击运行） |
 | `scripts/stop_all.py` | 一键关闭上述三个服务（按 PID 或端口扫描） |
+| `stop_all.bat` | Windows 一键关闭（双击运行） |
 | `scripts/fetch_real_data.py` | 从Tushare获取13只ETF的3年日线数据 |
 | `scripts/generate_data.py` | 生成合成测试数据（6只ETF，500日线+2880根5分钟线） |
 | `scripts/run_pipeline.py` | 加载数据 → 运行流水线 → 输出信号 + 风控评估 |
