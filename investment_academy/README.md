@@ -165,7 +165,6 @@ investment_academy/
     ├── test_models/
     ├── test_db/
     ├── test_bridge/
-    ├── test_interactive/
     ├── test_content/
     └── test_backend/
 ```
@@ -375,7 +374,7 @@ class UserPreferences:
 | 主后端 | FastAPI | ≥0.100 | REST API、CORS、SPAS 代理 |
 | 主题 | 自定义深色主题 | — | 黑底 + 金色强调 |
 | 样式 | 自定义 CSS | — | 仪表盘卡片、时间线 |
-| 图表 | ECharts / Plotly | ≥5.17 | K线图、指标图 |
+| 图表 | ECharts | ≥5.17 | K线图、指标图 |
 | 数据处理 | Pandas | ≥2.0 | 数据分析 |
 | 配置解析 | PyYAML | ≥6.0 | 内容文件解析 |
 | 数据库 | SQLite3 | 内置 | 进度持久化 |
@@ -387,7 +386,7 @@ class UserPreferences:
 
 ## 7. Bridge 层接口
 
-Bridge 位于 `core/bridge/`，用于读取 SPAS 本地数据（Parquet）和配置（sectors.yaml），供 Streamlit 和 Academy 后端使用。生产环境下，**涨跌概率/Setup 识别由 SPAS Core API 统一提供**，不通过 Bridge 计算。
+Bridge 位于 `core/bridge/`，用于读取 SPAS 本地数据（Parquet）和配置（sectors.yaml），供 Academy 后端使用。生产环境下，**涨跌概率/Setup 识别由 SPAS Core API 统一提供**，不通过 Bridge 计算。
 
 ### data_reader
 

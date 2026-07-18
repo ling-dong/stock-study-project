@@ -1,12 +1,14 @@
 # Investment Academy — 投资学院学习系统设计规格
 
-> 版本：V1.1 | 日期：2026-07-01 | 状态：设计中（新增P6交易心理与市场情绪）
+> 版本：V2.0 | 日期：2026-07-18 | 状态：已实施
+> 
+> 当前架构：Vue2 + FastAPI 前后端分离（原 Streamlit 版本已移除，详见 Git 历史）。
 
 ## 1. 项目概述
 
 ### 1.1 目标
 
-构建「投资学院」(Investment Academy)，一个基于 Streamlit 的交互式投资学习网站，帮助股市小白从零基础系统掌握投资和股市知识，最终成为投资大拿。
+构建「投资学院」(Investment Academy)，一个基于 **Vue2 + FastAPI** 的交互式投资学习网站，帮助股市小白从零基础系统掌握投资和股市知识，最终成为投资大拿。
 
 ### 1.2 核心原则
 
@@ -19,7 +21,7 @@
 - 股市完全新手
 - 对投资感兴趣但缺乏系统学习路径
 - 希望理论与实战结合
-- 有编程基础（能理解代码示例）
+- 有基本电脑操作能力（通过浏览器访问学习网站）
 
 ---
 
@@ -29,21 +31,18 @@
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                     D:\stock_market                      │
-│                                                         │
+│                     D:\stock_market                     │
+│                                                          │
 │  ┌──────────────┐          ┌──────────────────────────┐ │
-│  │  SPAS 系统    │          │  Investment Academy       │ │
-│  │  (不改动)     │◄─────────│  (新系统)                 │ │
-│  │              │  Bridge  │                          │ │
-│  │ src/         │  适配器   │ investment_academy/      │ │
-│  │ config/      │  单向依赖 │  ├── app.py              │ │
-│  │ data/        │          │  ├── pages/              │ │
-│  │ scripts/     │          │  ├── interactive/        │ │
-│  │ tests/       │          │  ├── content/            │ │
-│  └──────────────┘          │  ├── bridge/             │ │
-│                             │  ├── models/            │ │
-│                             │  └── tests/             │ │
-│                             └──────────────────────────┘ │
+│  │  SPAS 系统    │          │  Investment Academy      │ │
+│  │  (不改动)     │◄─────────│  (Vue2 + FastAPI)       │ │
+│  │              │  Bridge   │                          │ │
+│  │ src/         │  单向依赖 │ investment_academy/      │ │
+│  │ config/      │          │  ├── backend/            │ │
+│  │ data/        │          │  ├── frontend/           │ │
+│  │ scripts/     │          │  ├── core/               │ │
+│  │ tests/       │          │  └── content/            │ │
+│  └──────────────┘          └──────────────────────────┘ │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -51,20 +50,24 @@
 
 ```
 ┌────────────────────────────────────┐
-│  Pages 层                          │  编排层：组合内容和交互组件
-│  app.py, pages/*.py                │  不包含业务逻辑
+│  Vue2 Frontend 层                  │  表现层：SPA 页面、路由、组件
+│  frontend/src/views/*.vue          │  通过 axios 调用后端 API
+├────────────────────────────────────┤
+│  FastAPI Backend 层                │  服务层：REST API、CORS、SPAS 代理
+│  backend/routers/*.py              │  不实现预测算法，仅编排和代理
 ├────────────────────────────────────┤
 │  ↓                                │
-│  Interactive 层 + Content 层       │  并行层：
-│  interactive/*.py  content/*.{md,yaml}│  - Interactive：依赖于 Bridge
-│                                    │  - Content：零依赖纯数据
+│  Core 层                           │  共享核心库
+│  core/models/ core/db/             │  数据模型 + SQLite 持久化
+│  core/bridge/ core/engine/         │  SPAS 适配器 + 内容/沙盒引擎
 ├────────────────────────────────────┤
 │  ↓                                │
-│  Bridge 层                         │  适配器层：唯一 import SPAS 的地方
-│  bridge/*.py                       │  对外暴露稳定接口
+│  Content 层                        │  纯数据，零依赖
+│  content/*.{md,yaml}              │  Markdown/YAML 学习内容
 ├────────────────────────────────────┤
 │  ↓                                │
-│  SPAS SDK (外部系统)                │  只读消费，零修改
+│  SPAS Core API (外部系统)          │  只读消费，零修改
+│  http://127.0.0.1:8000             │  预测/市场数据/风控统一来源
 └────────────────────────────────────┘
 ```
 
@@ -72,9 +75,10 @@
 
 | 规则 | 说明 |
 |------|------|
-| `Pages → Interactive + Content` | 页面只做编排和路由 |
-| `Interactive → Bridge` | 交互组件通过 Bridge 获取数据和算力 |
-| `Bridge → SPAS` | **唯一的跨系统依赖**，单向只读 |
+| `Frontend → Backend` | 页面通过 axios 调用 FastAPI REST API（localhost:8001） |
+| `Frontend → SPAS Core API` | 预测/市场数据直接走 `/api/spas/*` 代理（localhost:8000） |
+| `Backend → Core` | 后端路由消费 `core/` 的模型、数据库、Bridge、引擎 |
+| `Core → SPAS (只读)` | Bridge 读取 Parquet/配置，不写入 SPAS |
 | `Content → ∅` | 纯数据，零依赖，可独立编写和复用 |
 | `SPAS → ∅ (不知学院存在)` | SPAS 完全不受影响 |
 
@@ -84,37 +88,50 @@
 investment_academy/
 ├── pyproject.toml              # 独立依赖管理
 ├── requirements.txt            # 独立 requirements
-├── app.py                      # Streamlit 入口 + 首页
-├── pages/
-│   ├── __init__.py
-│   ├── knowledge/              # 知识轨道页面
-│   │   ├── __init__.py
-│   │   ├── p1_basics.py        # P1: 股市基础
-│   │   ├── p2_technical.py     # P2: 技术分析入门
-│   │   ├── p3_sectors.py       # P3: 板块与产业链
-│   │   ├── p4_quant.py         # P4: 量化策略思维
-│   │   ├── p5_risk.py          # P5: 风险管理
-│   │   ├── p6_psychology.py    # P6: 交易心理与市场情绪
-│   │   └── p7_integration.py   # P7: 实战整合
-│   └── practice/               # 实践轨道页面
-│       ├── __init__.py
-│       ├── m1_data_lab.py      # M1: 数据勘探实验室
-│       ├── m2_feature_lab.py   # M2: 特征工程实验室
-│       ├── m3_prediction.py    # M3: 预测引擎探索
-│       ├── m4_risk_sandbox.py  # M4: 风控沙盒
-│       ├── m5_backtest.py      # M5: 回测分析器
-│       └── m6_sentiment.py     # M6: 市场情绪实验室
-├── interactive/                # 交互组件（可复用）
-│   ├── __init__.py
-│   ├── kline_chart.py          # K线图组件（Plotly）
-│   ├── feature_explorer.py     # 特征参数调节器
-│   ├── market_state_viz.py     # 市场状态可视化
-│   ├── signal_viewer.py        # 信号标注查看器
-│   ├── quiz_widget.py          # 测验组件
-│   ├── sandbox_engine.py       # 交易沙盒引擎
-│   ├── sentiment_viz.py        # 市场情绪可视化
-│   ├── psychology_checklist.py # 交易心理自检清单
-│   └── progress_dashboard.py   # 学习进度仪表盘
+├── backend/                    # FastAPI 后端服务
+│   ├── main.py                 # 入口 + CORS + 健康检查
+│   ├── schemas.py              # Pydantic 请求/响应模型
+│   └── routers/                # REST API 路由
+│       ├── content.py          # 学习内容
+│       ├── quiz.py             # 测验提交与评分
+│       ├── progress.py         # 学习进度
+│       ├── market.py           # ETF 市场数据
+│       ├── sandbox.py          # 交易沙盒
+│       ├── user.py             # 用户偏好/心理/日志
+│       ├── spas.py             # 代理 /api/spas/* → SPAS Core :8000
+│       └── manual_analysis.py  # 手动指标合成
+│
+├── frontend/                   # Vue2 SPA
+│   └── src/
+│       ├── views/              # 页面组件
+│       │   ├── Home.vue
+│       │   ├── SPASSignal.vue
+│       │   ├── SPASPrediction.vue
+│       │   ├── MarketOverview.vue
+│       │   ├── ProgressDashboard.vue
+│       │   ├── TradingJournal.vue
+│       │   ├── PsychologyCheck.vue
+│       │   ├── knowledge/KnowledgePhase.vue
+│       │   └── practice/PracticeLab.vue
+│       ├── components/         # 可复用组件
+│       │   ├── ui/             # 设计系统组件
+│       │   ├── QuizWidget.vue
+│       │   ├── KLineChart.vue
+│       │   ├── ProgressBar.vue
+│       │   └── MarkdownViewer.vue
+│       ├── styles/               # 全局设计系统
+│       │   ├── theme.css
+│       │   └── components.css
+│       ├── router/               # Vue Router
+│       ├── api/                  # axios 封装
+│       └── store/                # Vuex 状态管理
+│
+├── core/                       # 共享核心库（Backend + Frontend 共用）
+│   ├── models/                 # 数据模型（dataclass）
+│   ├── db/                     # SQLite 持久化
+│   ├── bridge/                 # SPAS 数据读取适配器
+│   └── engine/                 # 内容加载 + 沙盒引擎
+│
 ├── content/                    # 学习内容（纯数据）
 │   ├── knowledge_track/
 │   │   ├── p1_basics/
@@ -184,20 +201,6 @@ investment_academy/
 │       └── m6_sentiment/
 │           ├── lab_guide.md
 │           └── exercises.yaml
-├── bridge/                     # SPAS 适配器层
-│   ├── __init__.py
-│   ├── data_reader.py          # 读取 ETF 数据（Parquet）
-│   ├── knowledge_extractor.py  # 提取公式、参数、概念
-│   └── compute_runner.py       # 运行 SPAS 计算
-├── models/                     # 学院数据模型
-│   ├── __init__.py
-│   ├── progress.py             # 学习进度模型
-│   ├── quiz.py                 # 测验结果模型
-│   └── user.py                 # 用户偏好模型
-├── db/                         # 本地数据库
-│   ├── __init__.py
-│   ├── schema.sql              # SQLite schema
-│   └── repository.py           # 数据访问层
 └── tests/
     ├── __init__.py
     ├── test_content/
@@ -205,8 +208,8 @@ investment_academy/
     ├── test_bridge/
     │   ├── test_data_reader.py
     │   └── test_knowledge_extractor.py
-    ├── test_interactive/
-    │   └── test_sandbox_engine.py
+    ├── test_backend/
+    │   └── test_api.py
     └── test_models/
         └── test_progress.py
 ```
@@ -319,7 +322,7 @@ investment_academy/
 
 - **功能**：选ETF → 选时间范围 → 看K线图 → 叠加信号标注
 - **数据源**：Bridge → Parquet 文件
-- **图表**：Plotly OHLC 图 + 成交量柱状图 + 信号标记
+- **图表**：ECharts K 线图 + 成交量柱状图 + 信号标记
 - **参数**：时间框架切换（日线/60分钟/15分钟）
 
 ### 4.3 特征实验室
@@ -437,8 +440,9 @@ class UserPreferences:
 
 | 层 | 技术选型 | 版本 | 用途 |
 |----|---------|------|------|
-| 前端框架 | Streamlit | ≥1.28 | 页面渲染、导航 |
-| 图表 | Plotly | ≥5.17 | K线图、指标图 |
+| 前端框架 | Vue2 + Vue Router + Vuex | — | SPA 页面、路由、状态管理 |
+| 主后端 | FastAPI | ≥0.100 | REST API、CORS、SPAS 代理 |
+| 图表 | ECharts | ≥5.17 | K线图、指标图 |
 | 数据处理 | Pandas | ≥2.0 | 数据分析 |
 | 配置解析 | PyYAML | ≥6.0 | 内容文件解析 |
 | 数据库 | SQLite3 | 内置 | 进度持久化 |
@@ -449,12 +453,12 @@ class UserPreferences:
 
 ## 7. 关键设计决策
 
-### 7.1 为什么是 Streamlit 而不是 Web 框架？
+### 7.1 为什么是 Vue2 + FastAPI 而不是 Streamlit？
 
-- 纯 Python，与 SPAS 技术栈一致
-- 本地使用场景不需要前后端分离
-- 内置 Widget 和图表支持
-- 开发速度远超 FastAPI + React
+- 前后端分离：后端专注 API 和数据，前端专注交互和视觉体验
+- Vue2 组件化：可复用设计系统，统一视觉风格
+- FastAPI 自动生成 OpenAPI/Swagger 文档，便于测试和扩展
+- 未来可扩展为生产 Web 应用，而 Streamlit 更适合快速原型
 
 ### 7.2 Bridge 层为什么不直接 import SPAS 各处？
 
@@ -489,7 +493,7 @@ class UserPreferences:
 
 1. 创建 `investment_academy/` 目录结构
 2. 配置独立 `pyproject.toml`
-3. 搭建 Streamlit 入口 `app.py` + 首页
+3. 搭建 FastAPI 后端 `backend/main.py` + 首页 Vue 组件 `Home.vue`，原 `app.py` 已移除
 4. 实现 Bridge 层（data_reader + knowledge_extractor）
 5. 实现数据模型 + SQLite schema
 
@@ -518,7 +522,7 @@ class UserPreferences:
 | 风险 | 缓解措施 |
 |------|----------|
 | SPAS API 变更导致 Bridge 失效 | Bridge 层隔离 + 版本锁定 |
-| Streamlit 性能瓶颈 | 图表数据预聚合，避免实时重计算 |
+| 前端 bundle 体积 | 使用 ECharts 按需引入，代码分割懒加载 |
 | 内容编写工作量大 | 分批交付，先完成 P1-P2 验证可行性 |
 | 用户失去学习动力 | 沙盒游戏化 + 成就系统保持参与度 |
 

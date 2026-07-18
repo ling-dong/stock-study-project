@@ -1,14 +1,23 @@
 # Investment Academy 实施计划
 
+> **历史版本 / 2026-07-01**: 本计划最初面向 **Streamlit** 版本。实际实施时已将架构升级为 **Vue2 + FastAPI 前后端分离**，Streamlit 相关代码已移除。当前架构与实现状态请优先参考：
+> - `docs/superpowers/specs/2026-07-01-investment-academy-fastapi-vue2-design.md`
+> - `investment_academy/README.md`
+> - `SPAS_系统功能与使用指南.md`
+>
+> 以下步骤中涉及 `app.py`、`pages/`、`streamlit run` 等内容已过时，仅作为历史参考保留。
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** 构建「投资学院」— 基于 Streamlit 的交互式投资学习网站，与 SPAS 完全解耦，双轨学习体系（知识轨34章+实践轨6实验室），7大交互功能。
+**Goal:** 构建「投资学院」— 基于 **Vue2 + FastAPI** 的交互式投资学习网站，与 SPAS 完全解耦，双轨学习体系（知识轨34章+实践轨6实验室），7大交互功能。
 
-**Architecture:** 分层单向依赖 — Pages → Interactive/Content → Bridge → SPAS（只读）。Bridge 层是唯一的跨系统接触点。Content 为纯 Markdown/YAML 数据文件，零代码依赖。
+**Architecture:** 前后端分离 — Vue2 SPA ↔ FastAPI Backend ↔ `core/`（Bridge/DB/Models/Engine） ↔ SPAS（只读）。Content 为纯 Markdown/YAML 数据文件，零代码依赖。
 
-**Tech Stack:** Python 3.9+, Streamlit 1.28+, Plotly 5.17+, Pandas, PyYAML, SQLite3, Pytest
+**Tech Stack:** Python 3.9+, FastAPI 0.100+, Uvicorn, Vue2, Vue Router 3, Vuex 3, Axios, ECharts, Marked, Pandas, PyYAML, SQLite3, Pytest
 
 **Environment:** D:\stock_market (现有 SPAS 项目根目录)，investment_academy/ 为独立子目录
+
+**Current Status:** 已实施完成。测试：根目录 156 passed，Academy 60 passed；前端 `npm run build` 成功。
 
 ---
 

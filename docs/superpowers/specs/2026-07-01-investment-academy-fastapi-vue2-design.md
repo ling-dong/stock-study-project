@@ -8,10 +8,10 @@
 
 ## 1. 目标
 
-将 investment_academy 从 Streamlit 单体应用重构为 **前后端分离架构**：
+将 investment_academy 从 Streamlit 单体应用重构为 **前后端分离架构**（Streamlit 已移除）：
 
 - **前端**: Vue2 SPA（`localhost:8080`）
-- **后端**: FastAPI（`localhost:8000`）
+- **后端**: FastAPI（`localhost:8001`），代理 `/api/spas/*` 到 SPAS Core API（`localhost:8000`）
 - **数据**: 全部本地 — Parquet（SPAS）、SQLite（进度）、Markdown/YAML（内容）
 - **用户模型**: 单用户，无认证
 
@@ -19,7 +19,7 @@
 
 ```
 ┌─────────────────────┐         HTTP/JSON          ┌──────────────────────┐
-│   Vue2 SPA           │ ◄──────────────────────► │   FastAPI :8000       │
+│   Vue2 SPA           │ ◄──────────────────────► │   FastAPI :8001       │
 │   frontend/          │    axios + dev proxy      │   backend/            │
 │                      │                           │                       │
 │   Router → Views     │                           │   routers/ ─────────┐ │
@@ -31,9 +31,15 @@
                                                     │   ✅ models/          │
                                                     │   ✅ db/repository.py │
                                                     │   ✅ bridge/          │
-                                                    │   ✅ interactive/     │
+                                                    │   ✅ engine/          │
                                                     │   ✅ content/         │
                                                     └──────────────────────┘
+                              │
+                              ▼ proxy /api/spas/*
+                    ┌──────────────────────┐
+                    │   SPAS Core API :8000 │
+                    │   scripts/start.py serve
+                    └──────────────────────┘
 ```
 
 **核心原则**: 所有现有 Python 模块零改动。FastAPI 层是纯粹的新增代码，通过 `import` 消费现有模块。
@@ -43,10 +49,10 @@
 ```
 investment_academy/
 │
-├── backend/                          # 🆕 FastAPI 应用（约 400 行新增代码）
+├── backend/                          # FastAPI 应用
 │   ├── __init__.py
-│   ├── main.py                       # FastAPI app, CORS, static mount（备用）
-│   ├── schemas.py                    # Pydantic 请求/响应模型（~80 行）
+│   ├── main.py                       # FastAPI app, CORS, health check
+│   ├── schemas.py                    # Pydantic 请求/响应模型
 │   └── routers/
 │       ├── __init__.py
 │       ├── content.py                # GET  学习内容（章节、测验题、实验指南）
@@ -54,11 +60,13 @@ investment_academy/
 │       ├── progress.py               # GET/POST  学习进度
 │       ├── market.py                 # GET  ETF 数据（Bridge → Parquet）
 │       ├── sandbox.py                # POST/GET  交易沙盒（内存会话）
-│       └── user.py                   # GET/PUT/POST  偏好 + 心理 + 日志
+│       ├── user.py                   # GET/PUT/POST  偏好 + 心理 + 日志
+│       ├── spas.py                   # 代理 /api/spas/* → SPAS Core API :8000
+│       └── manual_analysis.py        # 手动指标合成（独立功能）
 │
-├── frontend/                         # 🆕 Vue2 SPA
+├── frontend/                         # Vue2 SPA
 │   ├── package.json
-│   ├── vue.config.js                 # devServer.proxy → localhost:8000
+│   ├── vue.config.js                 # devServer.proxy → /api/spas :8000, /api :8001
 │   └── src/
 │       ├── main.js
 │       ├── App.vue
@@ -69,34 +77,56 @@ investment_academy/
 │       │   ├── progress.js
 │       │   ├── market.js
 │       │   ├── sandbox.js
-│       │   └── user.js
+│       │   ├── user.js
+│       │   ├── spas.js               # SPAS Core 代理接口
+│       │   └── manual_analysis.js
 │       ├── router/
 │       │   └── index.js              # Vue Router 路由表
 │       ├── store/                    # Vuex（进度、偏好等全局状态）
 │       │   └── index.js
+│       ├── styles/                   # 全局设计系统
+│       │   ├── theme.css
+│       │   └── components.css
 │       ├── views/                    # 页面级组件
 │       │   ├── Home.vue              # 首页（双轨导航）
-│       │   ├── knowledge/            # 知识轨道页面
-│       │   │   └── P1Basics.vue
-│       │   └── practice/             # 实践轨道页面
-│       │       └── M1DataLab.vue
+│       │   ├── SPASSignal.vue
+│       │   ├── SPASPrediction.vue
+│       │   ├── MarketOverview.vue
+│       │   ├── ProgressDashboard.vue
+│       │   ├── TradingJournal.vue
+│       │   ├── PsychologyCheck.vue
+│       │   ├── knowledge/
+│       │   │   └── KnowledgePhase.vue    # 通用知识阶段页
+│       │   └── practice/
+│       │       ├── PracticeLab.vue       # 通用实践实验室页
+│       │       └── Sandbox.vue
 │       └── components/               # 可复用组件
+│           ├── ui/                   # 设计系统组件
+│           │   ├── Icon.vue
+│           │   ├── Panel.vue
+│           │   ├── MetricCard.vue
+│           │   ├── Badge.vue
+│           │   ├── Button.vue
+│           │   ├── PageHeader.vue
+│           │   ├── SectionTitle.vue
+│           │   ├── ProbabilityRing.vue
+│           │   └── FactorBar.vue
 │           ├── QuizWidget.vue        # 测验组件
-│           ├── KLineChart.vue        # K线图（Plotly.js 或 ECharts）
+│           ├── KLineChart.vue        # K线图（ECharts）
 │           ├── SandboxPanel.vue      # 交易沙盒面板
 │           ├── ProgressBar.vue       # 进度条
 │           └── MarkdownViewer.vue    # Markdown 渲染
 │
-├── models/                           # ✅ 不变（dataclass）
-├── db/                               # ✅ 不变（schema.sql + repository.py）
-├── bridge/                           # ✅ 不变（Parquet + YAML 读取）
-├── interactive/                      # ✅ 不变（content_loader, sandbox_engine）
-├── content/                          # ✅ 不变（Markdown + YAML）
-├── pages/                            # ✅ 保留（Streamlit 继续可用）
-├── tests/                            # ✅ 保留，新增 backend 单元测试
-├── app.py                            # ✅ 保留（Streamlit 入口）
-├── pyproject.toml                    # ✏️ 添加 fastapi, uvicorn
-└── requirements.txt                  # ✏️ 添加 fastapi>=0.100, uvicorn>=0.30
+├── core/                             # 共享核心库（Backend 与前端共用）
+│   ├── models/                       # 数据模型（dataclass）
+│   ├── db/                           # SQLite 持久化
+│   ├── bridge/                       # SPAS 数据读取适配器
+│   └── engine/                       # 内容加载 + 沙盒引擎
+│
+├── content/                          # 学习内容（Markdown + YAML）
+├── tests/                            # 测试套件（60 个测试）
+├── pyproject.toml                    # 独立依赖管理
+└── requirements.txt                  # pip install 用
 ```
 
 ## 4. API 端点设计
@@ -175,7 +205,24 @@ investment_academy/
 
 **实现**: 直接调用 `db.repository` 对应函数。
 
-### 4.7 系统 `main.py`
+### 4.8 SPAS 代理 `routers/spas.py`
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/spas/signal/{code}` | 对指定 ETF 运行完整 SPAS 流水线（代理到 SPAS Core :8000） |
+| GET | `/api/spas/market/etfs` | 可用 ETF 列表 |
+| GET | `/api/spas/market/etf/{code}/ohlcv` | ETF OHLCV 数据 |
+| GET | `/api/spas/system/status` | SPAS 系统状态 |
+
+### 4.9 手动指标分析 `routers/manual_analysis.py`
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | `/api/manual-analysis/analysis/{code}` | 手动指标合成 |
+| GET | `/api/manual-analysis/system-info` | 数据状态 |
+| GET | `/api/manual-analysis/history` | 历史记录 |
+
+### 4.10 系统 `main.py`
 
 | 方法 | 路径 | 返回 | 说明 |
 |------|------|------|------|
@@ -275,7 +322,7 @@ from bridge.data_reader import list_available_etfs
 
 ### 6.4 测验评分逻辑提取
 
-从 `interactive/quiz_widget.py` 的 Streamlit 渲染中提取纯评分函数：
+从 `core/engine/quiz_engine.py`（或原 `interactive/quiz_widget.py`）的渲染逻辑中提取纯评分函数：
 
 ```python
 # backend/routers/quiz.py 中新建
@@ -308,8 +355,12 @@ module.exports = {
   devServer: {
     port: 8080,
     proxy: {
-      '/api': {
+      '/api/spas': {
         target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+      '/api': {
+        target: 'http://localhost:8001',
         changeOrigin: true,
       }
     }
@@ -317,32 +368,24 @@ module.exports = {
 }
 ```
 
-Vue2 开发时所有 `/api/*` 请求自动代理到 FastAPI，无需在浏览器端处理 CORS。FastAPI 端仍配置 CORS 作为后备。
+Vue2 开发时 `/api/spas/*` 自动代理到 SPAS Core API（:8000），其余 `/api/*` 代理到 Academy Backend（:8001），无需在浏览器端处理 CORS。FastAPI 端仍配置 CORS 作为后备。
 
-### 6.6 现有 Streamlit 继续可用
+### 6.6 依赖关系
 
-以下文件零改动：
-- `models/` — dataclass 定义
-- `db/` — schema + repository
-- `bridge/` — data_reader + knowledge_extractor
-- `interactive/` — content_loader + sandbox_engine
-- `content/` — Markdown + YAML
-- `pages/` — Streamlit 页面
-- `app.py` — Streamlit 入口
-
-`streamlit run app.py` 仍然可以启动学习系统，与 FastAPI 后端共享同一套数据层。
+- 前端只通过 HTTP 调用后端/SPAS API，不直接引用 `core/`
+- 后端 `backend/routers/*` 引用 `core/` 的模型、数据库、Bridge 和内容加载器
+- `core/` 作为共享库，可被后端独立测试，也可被未来其他前端复用
 
 ## 7. 依赖变更
 
 ```diff
-# pyproject.toml 新增
+# pyproject.toml 新增/保留
 dependencies = [
-    "streamlit>=1.28",
-    "plotly>=5.17",
     "pandas>=2.0",
     "pyyaml>=6.0",
 +   "fastapi>=0.100",
 +   "uvicorn[standard]>=0.30",
++   "httpx>=0.25",
 ]
 ```
 
@@ -352,29 +395,55 @@ dependencies = [
 - `vuex@3`
 - `axios`
 - `marked`（Markdown 渲染）
-- `echarts`（K 线图，替代 Plotly）
+- `echarts`（K 线图）
+- `klinecharts`（K 线图组件库）
 
 ## 8. 启动方式
 
+推荐一键启动：
+
 ```bash
-# 终端 1: 启动后端
-cd investment_academy
-pip install fastapi uvicorn
-uvicorn backend.main:app --reload --port 8000
-
-# 终端 2: 启动前端
-cd investment_academy/frontend
-npm install
-npm run serve
-
-# 浏览器打开 http://localhost:8080
+cd D:\stock_market
+python scripts/start_all.py
 ```
 
-FastAPI 自动生成 Swagger 文档：`http://localhost:8000/docs`
+该脚本同时启动：
+- SPAS Core API — http://127.0.0.1:8000
+- Investment Academy Backend — http://127.0.0.1:8001
+- Vue2 Frontend — http://127.0.0.1:8080
+
+手动启动（三个终端）：
+
+```bash
+# 终端 1: 启动 SPAS Core API
+cd D:\stock_market
+python scripts/start.py serve
+
+# 终端 2: 启动 Academy 后端
+cd D:\stock_market\investment_academy
+uvicorn backend.main:app --host 127.0.0.1 --port 8001
+
+# 终端 3: 启动前端
+cd D:\stock_market\investment_academy\frontend
+npm install
+npm run serve
+```
+
+浏览器打开 http://localhost:8080。
+
+- SPAS Core Swagger: http://127.0.0.1:8000/docs
+- Academy Backend Swagger: http://127.0.0.1:8001/docs
+
+一键关闭：
+
+```bash
+cd D:\stock_market
+python scripts/stop_all.py
+```
 
 ## 9. 测试策略
 
-### 后端测试（新增 `tests/test_backend/`）
+### 后端测试（`tests/test_backend/`、`tests/test_models/`、`tests/test_db/`、`tests/test_bridge/`、`tests/test_engine/`、`tests/test_content/`）
 
 - `test_content_routes.py` — 验证内容 API 返回正确数据
 - `test_quiz_routes.py` — 验证评分逻辑和持久化
@@ -382,40 +451,61 @@ FastAPI 自动生成 Swagger 文档：`http://localhost:8000/docs`
 - `test_market_routes.py` — 验证 Bridge 数据接口
 - `test_sandbox_routes.py` — 验证沙盒会话生命周期
 - `test_user_routes.py` — 验证偏好/心理/日志接口
+- `test_spas_routes.py` — 验证 SPAS 代理路由
+- 现有模型/数据库/Bridge/内容测试继续保留
 
-使用 FastAPI `TestClient`，不启动真实服务器。
-
-### 现有测试（`tests/`）
-
-全部保留，23 个测试继续通过（它们测试 models/db/bridge/interactive 层，与 FastAPI 无关）。
+使用 FastAPI `TestClient`，不启动真实服务器。当前测试总数：60 个。
 
 ### 前端测试（可选项）
 
 - Vue 组件单元测试（Jest + vue-test-utils）
 - 不在本次范围
 
+### 全量验证
+
+```bash
+# 根目录
+cd D:\stock_market
+python -m pytest tests/ -q
+
+# Academy 子目录
+cd D:\stock_market\investment_academy
+python -m pytest tests/ -q
+
+# 前端构建
+cd D:\stock_market\investment_academy\frontend
+npm run build
+```
+
 ## 10. 阶段规划
 
-### Phase 1: 后端骨架
-- `backend/main.py` + CORS
+### Phase 1: 后端骨架 ✅
+- `backend/main.py` + CORS + health check
 - `backend/schemas.py`
-- 路由：`content.py`、`quiz.py`、`progress.py`、`user.py`
-- 路由：`market.py`、`sandbox.py`
+- 路由：`content.py`、`quiz.py`、`progress.py`、`user.py`、`market.py`、`sandbox.py`
+- 路由：`spas.py`（SPAS Core 代理）、`manual_analysis.py`
 - 后端单元测试
 
-### Phase 2: 前端骨架
-- Vue2 项目初始化（`vue create`）
-- `vue.config.js` 代理配置
+### Phase 2: 前端骨架 ✅
+- Vue2 项目初始化
+- `vue.config.js` 代理配置（/api/spas → 8000，/api → 8001）
 - 路由 + 状态管理
 - `api/` axios 封装
 - 基础布局 + 导航
+- 全局设计系统（theme.css, components.css, ui/ components）
 
-### Phase 3: 核心页面
+### Phase 3: 核心页面 ✅
 - 首页（双轨导航）
-- P1 基础知识页（章节阅读 + 测验）
-- M1 数据勘探实验室（ETF 浏览器 + K 线图）
+- 知识阶段通用页 `KnowledgePhase.vue`（章节阅读 + 测验）
+- 实践实验室通用页 `PracticeLab.vue`（ETF 浏览器 + K线图）
+- SPAS 自动信号页 `SPASSignal.vue`
+- SPAS 预测页 `SPASPrediction.vue`
+- 市场概览 `MarketOverview.vue`
 
-### Phase 4: 完善
-- 沙盒交易页面
-- 进度仪表盘
-- 其他阶段页面
+### Phase 4: 完善 ✅
+- 交易沙盒 `Sandbox.vue`
+- 交易日志 `TradingJournal.vue`
+- 心理自检 `PsychologyCheck.vue`
+- 进度仪表盘 `ProgressDashboard.vue`
+- 一键启动/关闭脚本 `scripts/start_all.py`、`scripts/stop_all.py`
+- 移除 Streamlit 遗留代码
