@@ -10,6 +10,7 @@ venv/
 *.parquet
 data/*.parquet
 .superpowers/
+.claude/
 investment_academy/db/academy.db
 investment_academy/core/db/academy.db
 .spas-services.pid

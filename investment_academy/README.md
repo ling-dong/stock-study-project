@@ -564,6 +564,5 @@ c55767b feat(investment-academy): Task 1 — create directory structure and proj
 
 ---
 
-> **设计规格**: `docs/superpowers/specs/2026-06-30-investment-academy-design.md`
-> **实施计划**: `docs/superpowers/plans/2026-07-01-investment-academy-plan.md`
-> **构建日期**: 2026-07-01
+> **设计规格**: 已合并精简，详见本 README 与 `SPAS_系统功能与使用指南.md`
+> **构建日期**: 2026-07-18
