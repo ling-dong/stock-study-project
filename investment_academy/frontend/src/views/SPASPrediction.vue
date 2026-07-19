@@ -910,27 +910,13 @@ export default {
 /* Workspace */
 .workspace {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  align-items: stretch;
+  grid-template-columns: 1fr;
   gap: var(--ia-space-md);
   margin-bottom: var(--ia-space-xl);
 }
 
 .workspace-col {
-  display: flex;
-  flex-direction: column;
   min-width: 0;
-}
-
-.workspace-col >>> .ia-panel__body {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.workspace-col >>> .psych-list,
-.workspace-col >>> .indicator-groups {
-  flex: 1;
 }
 
 /* Indicator groups */
@@ -1093,16 +1079,16 @@ export default {
 }
 
 .psych-options {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  display: flex;
+  flex-direction: column;
   gap: 0.55rem;
 }
 
 .opt-card {
   display: flex;
-  align-items: flex-start;
-  gap: 0.55rem;
-  padding: 0.65rem 0.75rem;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.7rem 0.9rem;
   background: var(--ia-bg);
   border: 1px solid var(--ia-glass-border);
   border-radius: var(--ia-radius-sm);
