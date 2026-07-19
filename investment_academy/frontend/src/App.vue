@@ -9,11 +9,10 @@
           投资学院
           <span>Investment Academy</span>
         </div>
+        <button class="sidebar-toggle" @click="toggleSidebar" :title="collapsed ? '展开侧边栏' : '收起侧边栏'">
+          <IAIcon :name="collapsed ? 'chevron-right' : 'chevron-left'" size="md" />
+        </button>
       </div>
-
-      <button class="sidebar-toggle" @click="toggleSidebar" :title="collapsed ? '展开侧边栏' : '收起侧边栏'">
-        <IAIcon :name="collapsed ? 'chevron-right' : 'chevron-left'" size="md" />
-      </button>
 
       <nav class="sidebar-nav">
         <div class="nav-section">
@@ -329,8 +328,9 @@ export default {
 
 .sidebar-toggle {
   position: absolute;
-  right: -15px;
-  top: 22px;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
   width: 38px;
   height: 38px;
   border-radius: 50%;
@@ -350,12 +350,12 @@ export default {
 .sidebar-toggle:hover {
   background: var(--ia-gold);
   color: var(--ia-bg);
-  transform: scale(1.08);
+  transform: translateY(-50%) scale(1.08);
   box-shadow: 0 6px 22px rgba(0, 0, 0, 0.4), 0 0 22px rgba(240, 185, 11, 0.35);
 }
 
 .sidebar-toggle:active {
-  transform: scale(0.96);
+  transform: translateY(-50%) scale(0.96);
 }
 
 .sidebar-nav {
@@ -630,9 +630,18 @@ export default {
 
 .sidebar-collapsed .sidebar-toggle {
   position: static;
+  transform: none;
   width: 34px;
   height: 34px;
   margin: 0.6rem auto 0;
+}
+
+.sidebar-collapsed .sidebar-toggle:hover {
+  transform: scale(1.08);
+}
+
+.sidebar-collapsed .sidebar-toggle:active {
+  transform: scale(0.96);
 }
 
 .sidebar-collapsed .sidebar-footer {
