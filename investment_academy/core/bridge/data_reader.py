@@ -6,6 +6,8 @@ import yaml
 
 import pandas as pd
 
+from core.utils.path_utils import validate_etf_code, validate_timeframe
+
 # SPAS 项目根目录：bridge/ -> investment_academy/ -> 项目根目录
 SPAS_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 SPAS_DATA_DIR = SPAS_ROOT / "data"
@@ -37,6 +39,9 @@ def load_etf_data(code: str, timeframe: str = "day") -> Optional[pd.DataFrame]:
     Returns:
         DataFrame with OHLCV columns sorted by trade_date, or None if not found
     """
+    if not validate_etf_code(code) or not validate_timeframe(timeframe):
+        return None
+
     file_path = SPAS_DATA_DIR / f"{code}_{timeframe}.parquet"
     if not file_path.exists():
         files = list(SPAS_DATA_DIR.glob(f"{code}*.parquet"))

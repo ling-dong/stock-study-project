@@ -210,8 +210,9 @@ class SPASAnalysisIn(BaseModel):
     current_price: Optional[float] = Field(default=None, description="实时价格 — 从同花顺填入，不填则用数据最新收盘价")
     rr_ratio: float = Field(default=2.0, ge=1.0, le=5.0, description="风险回报比")
     max_loss_pct: float = Field(default=5.0, ge=1.0, le=15.0, description="最大可接受亏损 %")
-    # 心理问卷（10题，每题 0-3 分）
-    psychology_answers: list[int] = Field(..., min_length=10, max_length=10, description="心理问卷10题答案")
+    # 心理问卷（10题，原始选项索引，每题选项数可不同）
+    psychology_answers: list[int] = Field(..., min_length=10, max_length=10, description="心理问卷10题原始答案索引")
+    psychology_max_score: Optional[int] = Field(default=50, ge=10, le=200, description="心理问卷原始总分上限，用于动态缩放")
 
 
 class SPASProbFactor(BaseModel):

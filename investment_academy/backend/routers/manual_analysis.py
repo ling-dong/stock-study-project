@@ -1,5 +1,6 @@
 """SPAS 预测系统 — 用户输入指标 + 系统合成决策"""
 import json
+import logging
 import os
 import sys
 import time
@@ -8,11 +9,29 @@ from pathlib import Path
 from typing import Optional
 
 import pandas as pd
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Header, Request
+
+logger = logging.getLogger(__name__)
 
 SPAS_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 if str(SPAS_ROOT) not in sys.path:
     sys.path.insert(0, str(SPAS_ROOT))
+
+# 本地数据更新接口的访问密钥，未设置则端点不可用
+IA_UPDATE_SECRET = os.environ.get("IA_UPDATE_SECRET", "")
+
+
+def _check_update_auth(request: Request, x_update_secret: str = Header(default="")):
+    """校验本地数据更新接口的访问权限：密钥或本地回环 IP"""
+    client_host = request.client.host if request.client else ""
+    if client_host in ("127.0.0.1", "localhost", "::1"):
+        return True
+    if IA_UPDATE_SECRET and x_update_secret == IA_UPDATE_SECRET:
+        return True
+    if not IA_UPDATE_SECRET:
+        raise HTTPException(status_code=503, detail="数据更新接口未配置访问密钥，已禁用")
+    raise HTTPException(status_code=403, detail="无权访问数据更新接口")
+
 
 from core.bridge.data_reader import (
     load_etf_data,
@@ -252,7 +271,45 @@ def _synthesize_probability(
         detail=f"量比={inp.volume_ratio:.2f}, 缩放系数={factor_scale:.2f} (应用于方向信号)",
     ))
 
-    # ──── 8. 大盘环境衰减 ────
+    # ──── 8. 换手率因子 ±3% ────
+    turnover = inp.turnover_rate
+    if turnover < 0.5:
+        turnover_contrib = -0.03
+        turnover_detail = f"换手率={turnover:.2f}%, 流动性不足, 信号可信度下降"
+    elif turnover > 10.0:
+        turnover_contrib = -0.02
+        turnover_detail = f"换手率={turnover:.2f}%, 交易过热, 情绪风险升高"
+    elif turnover > 5.0:
+        turnover_contrib = 0.01
+        turnover_detail = f"换手率={turnover:.2f}%, 交投活跃, 流动性良好"
+    else:
+        turnover_contrib = 0.0
+        turnover_detail = f"换手率={turnover:.2f}%, 正常"
+    factors.append(SPASProbFactor(factor="换手率", contribution=turnover_contrib, detail=turnover_detail))
+    total_adjustment += turnover_contrib
+
+    # ──── 9. 量价背离检测 ────
+    price_bull = tech.ma_alignment == "BULL" or tech.kline_pattern == "bullish"
+    price_bear = tech.ma_alignment == "BEAR" or tech.kline_pattern == "bearish"
+    vp_divergence = 0.0
+    vp_detail = None
+    if price_bull and inp.volume_ratio < 0.8:
+        vp_divergence = -0.03
+        vp_detail = "价格偏强但量比<0.8, 上涨缺乏成交量配合, 量价背离"
+    elif price_bear and inp.volume_ratio < 0.8:
+        vp_divergence = 0.03
+        vp_detail = "价格偏弱但量比<0.8, 下跌动能不足, 背离缓和"
+    elif price_bull and inp.volume_ratio > 1.3:
+        vp_divergence = 0.02
+        vp_detail = "价格偏强且量比>1.3, 放量确认"
+    elif price_bear and inp.volume_ratio > 1.3:
+        vp_divergence = -0.02
+        vp_detail = "价格偏弱且量比>1.3, 放量确认"
+    if vp_detail:
+        factors.append(SPASProbFactor(factor="量价背离", contribution=vp_divergence, detail=vp_detail))
+        total_adjustment += vp_divergence
+
+    # ──── 10. 大盘环境衰减 ────
     market_decay = {"bull": 1.0, "range": 0.6, "bear": 0.3}
     decay = market_decay.get(inp.market_trend, 0.6)
     if inp.market_adx > 25 and inp.market_trend == "bear":
@@ -263,13 +320,13 @@ def _synthesize_probability(
         detail=f"大盘={inp.market_trend}, ADX={inp.market_adx:.0f}, 衰减系数={decay:.2f}",
     ))
 
-    # ──── 9. 均线排列 ±5% ────
+    # ──── 11. 均线排列 ±5% ────
     ma_contrib = {"BULL": 0.05, "BEAR": -0.05, "NEUTRAL": 0.0}
     ma_c = ma_contrib.get(tech.ma_alignment, 0.0)
     factors.append(SPASProbFactor(factor="均线排列", contribution=ma_c, detail=f"均线={tech.ma_alignment}"))
     total_adjustment += ma_c
 
-    # ──── 10. K线形态 ±3% ────
+    # ──── 12. K线形态 ±3% ────
     kline_contrib = {"bullish": 0.03, "bearish": -0.03, "neutral": 0.0}
     kl_c = kline_contrib.get(tech.kline_pattern, 0.0)
     factors.append(SPASProbFactor(factor="K线形态", contribution=kl_c, detail=f"收盘位置={tech.kline_features['close_position']:.2f}, 实体比={tech.kline_features['body_ratio']:.2f}"))
@@ -286,10 +343,10 @@ def _synthesize_probability(
         if f.factor in ("DMI趋势", "MACD金叉区", "MACD死叉区"):
             net_directional_parts.append(f.contribution)
 
-    # 非方向性部分 = 热度 + 背离
+    # 非方向性部分 = 热度 + 背离 + 换手率 + 量价背离
     non_dir_parts = []
     for f in factors:
-        if f.factor in ("RSI+WR双重超卖", "RSI+WR双重超买", "RSI/WR背离", "OBV价格背离"):
+        if f.factor in ("RSI+WR双重超卖", "RSI+WR双重超买", "RSI/WR背离", "OBV价格背离", "换手率", "量价背离"):
             non_dir_parts.append(f.contribution)
 
     net_dir = sum(net_directional_parts)
@@ -324,24 +381,28 @@ def _compute_position(
     prob: float,
     rr_ratio: float,
     psychology_answers: list[int],
+    turnover_rate: float = 0.0,
+    psychology_max_score: int = 50,
 ) -> SPASPositionOut:
-    """Kelly 仓位 + 心理问卷调整"""
+    """Kelly 仓位 + 心理问卷调整 + 流动性约束"""
     # Kelly: f* = (p*b - q) / b
     p = prob
     b = rr_ratio
     q = 1.0 - p
     kelly = (p * b - q) / b if b > 0 else 0.0
 
-    # 心理评分
+    # 心理评分：使用问卷原始总分上限动态缩放
     total_score = sum(psychology_answers)
-    psych_factor = 0.50 + (total_score / 30.0) * 0.50  # [0.5, 1.0]
+    max_raw_score = max(1, psychology_max_score)
+    psych_factor = 0.50 + (total_score / max_raw_score) * 0.50  # [0.5, 1.0]
 
-    # 心理等级
-    if total_score >= 25:
+    # 心理等级（基于百分比阈值）
+    score_pct = total_score / max_raw_score
+    if score_pct >= 0.85:
         psych_level = "优秀"
-    elif total_score >= 20:
+    elif score_pct >= 0.65:
         psych_level = "良好"
-    elif total_score >= 15:
+    elif score_pct >= 0.45:
         psych_level = "一般"
     else:
         psych_level = "需改善"
@@ -372,6 +433,17 @@ def _compute_position(
 
     if kelly <= 0:
         warnings.append("Kelly公式f*≤0, 建议不交易")
+
+    # 流动性约束：换手率过低或过高都降低仓位
+    liquidity_factor = 1.0
+    if turnover_rate > 0 and turnover_rate < 0.5:
+        liquidity_factor = 0.7
+        warnings.append(f"换手率仅{turnover_rate:.2f}%, 流动性不足, 建议仓位下调30%")
+    elif turnover_rate > 10.0:
+        liquidity_factor = 0.85
+        warnings.append(f"换手率{turnover_rate:.2f}%, 交投过热, 建议仓位下调15%")
+
+    suggested = round(suggested * liquidity_factor, 1)
 
     return SPASPositionOut(
         kelly_f_star=round(kelly, 4),
@@ -455,7 +527,13 @@ def analyze(code: str, inp: SPASAnalysisIn):
     probability = _synthesize_probability(inp, tech)
 
     # 4. 计算仓位
-    position = _compute_position(probability.probability, inp.rr_ratio, inp.psychology_answers)
+    position = _compute_position(
+        probability.probability,
+        inp.rr_ratio,
+        inp.psychology_answers,
+        inp.turnover_rate,
+        inp.psychology_max_score,
+    )
 
     # 5. 计算止盈止损
     risk = _compute_risk(tech.current_price, inp.atr, inp.rr_ratio, inp.max_loss_pct)
@@ -486,8 +564,8 @@ def analyze(code: str, inp: SPASAnalysisIn):
             inputs_json=inp.model_dump_json(),
             result_json=result.model_dump_json(),
         )
-    except Exception:
-        pass  # 保存失败不影响分析结果
+    except Exception as e:
+        logger.warning(f"保存 SPAS 历史记录失败: {e}")
 
     return result
 
@@ -572,8 +650,9 @@ def system_info():
 
 
 @router.post("/update-data")
-def trigger_data_update():
-    """使用 akshare 更新全部 ETF 日线数据"""
+def trigger_data_update(request: Request, x_update_secret: str = Header(default="")):
+    """使用 akshare 更新全部 ETF 日线数据（需本地访问或密钥）"""
+    _check_update_auth(request, x_update_secret)
     etfs = list_available_etfs()
     if not etfs:
         return {"success": False, "message": "没有可用的 ETF"}

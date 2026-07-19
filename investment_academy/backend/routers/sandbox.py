@@ -4,6 +4,7 @@ import threading
 from fastapi import APIRouter, HTTPException
 from core.bridge.data_reader import load_etf_data
 from core.engine.sandbox_engine import SandboxEngine
+from core.utils.path_utils import validate_etf_code, validate_timeframe
 from backend.schemas import (
     SandboxInitIn, SandboxInitOut,
     SandboxBuyIn, SandboxSellIn,
@@ -31,6 +32,8 @@ def _cleanup_expired():
 @router.post("/init", response_model=SandboxInitOut)
 def sandbox_init(body: SandboxInitIn):
     """初始化沙盒会话"""
+    if not validate_etf_code(body.etf_code) or not validate_timeframe(body.timeframe):
+        raise HTTPException(status_code=400, detail="非法的 ETF 代码或时间周期")
     df = load_etf_data(body.etf_code, body.timeframe)
     if df is None or len(df) == 0:
         raise HTTPException(status_code=404, detail=f"ETF 数据不存在: {body.etf_code}")

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """从Tushare Pro获取真实A股ETF行情数据并保存为Parquet"""
+import os
 import sys
 sys.path.insert(0, ".")
 import asyncio
@@ -8,8 +9,31 @@ import pandas as pd
 from src.data.adapters.tushare import TushareAdapter
 from src.data.adapters.local import LocalAdapter
 
-TOKEN = "47dc072de82440ad88a57bb0215afd42"
-API_URL = "https://ts.gyzcloud.top/api"
+
+def _load_env():
+    """优先从 .env 文件加载环境变量"""
+    env_path = ".env"
+    if os.path.exists(env_path):
+        with open(env_path, encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                key, value = line.split("=", 1)
+                key = key.strip()
+                value = value.strip().strip('"').strip("'")
+                if key not in os.environ:
+                    os.environ[key] = value
+
+
+_load_env()
+
+TOKEN = os.environ.get("TUSHARE_TOKEN")
+API_URL = os.environ.get("TUSHARE_API_URL", "https://ts.gyzcloud.top/api")
+
+if not TOKEN:
+    print("错误：未设置 TUSHARE_TOKEN 环境变量。请将 .env.example 复制为 .env 并填入 token。")
+    sys.exit(1)
 
 ETF_LIST = [
     # 宽基

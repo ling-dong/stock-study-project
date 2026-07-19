@@ -16,4 +16,6 @@ investment_academy/core/db/academy.db
 .spas-services.pid
 investment_academy/frontend/dist/
 investment_academy/frontend/.env.local
+.env
+.env.local
 

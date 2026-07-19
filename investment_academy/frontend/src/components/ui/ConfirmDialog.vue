@@ -99,10 +99,11 @@ export default {
 
 .confirm-dialog {
   width: 100%;
-  max-width: 560px;
+  min-width: 560px;
+  max-width: 620px;
   background: var(--ia-surface-glass);
   border: 1px solid var(--ia-glass-border);
-  border-radius: var(--ia-radius-lg);
+  border-radius: var(--ia-radius-xl);
   padding: var(--ia-space-3xl) var(--ia-space-2xl);
   box-shadow: var(--ia-shadow-lg), 0 0 0 1px rgba(255, 255, 255, 0.04);
   text-align: center;
@@ -112,8 +113,8 @@ export default {
 }
 
 .confirm-icon {
-  width: 76px;
-  height: 76px;
+  width: 82px;
+  height: 82px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -121,8 +122,8 @@ export default {
   margin: 0 auto var(--ia-space-lg);
   background: var(--ia-red-soft);
   color: var(--ia-red);
-  border: 1px solid rgba(246, 70, 93, 0.22);
-  box-shadow: 0 0 20px rgba(246, 70, 93, 0.12);
+  border: 1px solid rgba(246, 70, 93, 0.25);
+  box-shadow: 0 0 24px rgba(246, 70, 93, 0.14);
 }
 
 .confirm-title {
@@ -135,7 +136,7 @@ export default {
 .confirm-message {
   font-size: var(--ia-font-size-lg);
   color: var(--ia-text-secondary);
-  margin: 0 0 var(--ia-space-xl);
+  margin: 0 0 var(--ia-space-2xl);
   line-height: 1.6;
 }
 
@@ -146,9 +147,9 @@ export default {
 }
 
 .confirm-actions .ia-btn {
-  min-width: 160px;
-  padding: 1rem 2.5rem;
-  font-size: 1rem;
+  min-width: 180px;
+  padding: 1.1rem 2.8rem;
+  font-size: 1.05rem;
   border-radius: var(--ia-radius);
 }
 
@@ -175,6 +176,7 @@ export default {
 
 @media (max-width: 640px) {
   .confirm-dialog {
+    min-width: auto;
     max-width: 90vw;
     padding: var(--ia-space-2xl) var(--ia-space-lg);
   }

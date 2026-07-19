@@ -26,7 +26,7 @@
         <div class="setup-field">
           <label class="ia-label">ETF</label>
           <select v-model="selectedETF" class="ia-select">
-            <option value="" disabled>— 选择 ETF —</option>
+            <option value="" disabled>选择 ETF</option>
             <option v-for="etf in etfList" :key="etf.code" :value="etf.code">
               {{ etfNameMap[etf.code] || etf.code }}
             </option>
@@ -53,7 +53,7 @@
             :disabled="!canAnalyze"
             @click="runAnalysis"
           >
-            <IAIcon name="activity" size="sm" />
+            <IAIcon name="activity" v-if="!analyzing" size="sm" />
             运行分析
           </IAButton>
         </div>
@@ -216,7 +216,7 @@
           <dl class="kv-grid">
             <div class="kv"><dt>Kelly f*</dt><dd>{{ (result.position.kelly_f_star * 100).toFixed(1) }}%</dd></div>
             <div class="kv"><dt>¼ Kelly</dt><dd>{{ (result.position.kelly_fractional * 100).toFixed(2) }}%</dd></div>
-            <div class="kv"><dt>心理评分</dt><dd>{{ result.position.psychology_score }}<span>/30</span></dd></div>
+            <div class="kv"><dt>心理评分</dt><dd>{{ result.position.psychology_score }}<span>/{{ psychMaxScore }}</span></dd></div>
             <div class="kv"><dt>心理等级</dt><dd :class="psychLevelClass(result.position.psychology_level)">{{ result.position.psychology_level }}</dd></div>
             <div class="kv"><dt>R:R</dt><dd>{{ result.risk.rr_ratio.toFixed(1) }}:1</dd></div>
             <div class="kv"><dt>ATR(14)</dt><dd>{{ result.risk.atr.toFixed(4) }}</dd></div>
@@ -281,8 +281,15 @@
               <span>仓位 {{ h.position_pct.toFixed(1) }}%</span>
             </div>
           </div>
-          <button class="history-card__del" @click.stop="doDeleteHistory(h.id)" title="删除">
-            <IAIcon name="trash" size="xs" />
+          <button
+            class="history-card__del"
+            :class="{ 'history-card__del--loading': deletingId === h.id }"
+            :disabled="deletingId === h.id"
+            @click.stop="doDeleteHistory(h.id)"
+            title="删除"
+          >
+            <IAIcon v-if="deletingId !== h.id" name="trash" size="xs" />
+            <IAIcon v-else name="spinner" size="xs" class="ia-anim-spin" />
           </button>
         </div>
       </div>
@@ -292,11 +299,11 @@
     <IAModal :visible="historyModalVisible" :title="historyModalTitle" @close="closeHistoryModal">
       <div class="history-detail" v-if="historyModalItem">
         <div class="hd-summary">
+          <div class="hd-etf-row">
+            <IAIcon name="market" size="md" />
+            <span class="hd-etf-name">{{ historyModalItem.etf_name || historyModalItem.etf_code }}</span>
+          </div>
           <div class="hd-grid">
-            <div class="hd-cell">
-              <span class="hd-label">ETF</span>
-              <span class="hd-value">{{ historyModalItem.etf_name || historyModalItem.etf_code }}</span>
-            </div>
             <div class="hd-cell">
               <span class="hd-label">时间</span>
               <span class="hd-value">{{ historyModalItem.created_at }}</span>
@@ -326,6 +333,10 @@
             <div class="hd-cell">
               <span class="hd-label">心理评分</span>
               <span class="hd-value">{{ historyModalItem.psychology_score }} · {{ historyModalItem.psychology_level }}</span>
+            </div>
+            <div v-if="historyModalTurnoverRate != null" class="hd-cell">
+              <span class="hd-label">换手率</span>
+              <span class="hd-value">{{ historyModalTurnoverRate.toFixed(2) }}%</span>
             </div>
           </div>
         </div>
@@ -373,8 +384,8 @@
         </transition>
       </div>
       <template #footer>
-        <IAButton variant="ghost" size="md" @click="closeHistoryModal">关闭</IAButton>
-        <IAButton variant="primary" size="md" @click="loadHistoryModalItem">载入当前分析</IAButton>
+        <IAButton variant="ghost" size="lg" @click="closeHistoryModal">关闭</IAButton>
+        <IAButton variant="primary" size="lg" @click="loadHistoryModalItem">载入当前分析</IAButton>
       </template>
     </IAModal>
   </div>
@@ -392,6 +403,7 @@ const DEFAULT_FORM = {
   dif: null, dea: null, macd_bar: '',
   rsi: null, wr: null,
   volume_ratio: null,
+  turnover_rate: null,
   obv_direction: '',
   market_trend: '', market_adx: null,
   rr_ratio: 2.0, max_loss_pct: 5.0,
@@ -404,6 +416,7 @@ const DEMO_VALUES = {
   dif: 0.018, dea: -0.012, macd_bar: 'red_increasing',
   rsi: 58.2, wr: 35.0,
   volume_ratio: 1.45,
+  turnover_rate: 2.5,
   obv_direction: 'up',
   market_trend: 'bull', market_adx: 32.0,
   rr_ratio: 2.0, max_loss_pct: 5.0,
@@ -411,7 +424,7 @@ const DEMO_VALUES = {
 
 export default {
   name: 'ManualAnalysis',
-  components: { IAPageHeader, IAPanel, IABadge, IAButton, IAIcon, IASectionTitle, IATooltip, ProbabilityRing, FactorBar },
+  components: { IAPageHeader, IAPanel, IABadge, IAButton, IAIcon, IASectionTitle, IATooltip, IAModal, ProbabilityRing, FactorBar },
   data() {
     return {
       sysInfo: {},
@@ -422,14 +435,14 @@ export default {
       psychQuestions: [
         { text: '你进行这笔交易的主要动机是什么？', options: ['执行交易计划中已设定的策略', '基于自己的初步分析，但还不够系统', '看到别人在讨论/推荐这只ETF', '担心错过这波行情', '近期亏损想尽快回本', '没有明确动机，随手下单'] },
         { text: '你对这只ETF的了解程度？', options: ['深入研究过，了解其持仓和行业定位', '看过一些相关报告和新闻', '了解一些，但不够系统', '听说过这只ETF，知道大概方向', '不熟悉，凭感觉选的', '完全不了解'] },
-        { text: '最近一周你的情绪状态如何？', options: ['平稳冷静，正常生活不受影响', '略有焦虑，但能自我调节', '有些焦虑，会时不时看盘', '比较焦虑，频繁查看账户', '非常焦虑，影响睡眠或日常'] },
-        { text: '如果买入后立即亏损5%，你会怎么做？', options: ['按原定止损计划执行，果断离场', '减仓观察，等确认方向后再决定', '重新分析基本面再决定去留', '加仓摊平成本等待反弹', '死扛不卖，相信总会涨回来'] },
+        { text: '最近一周你的情绪状态如何？', options: ['平稳冷静，正常生活不受影响', '略有焦虑，但能自我调节', '有些焦虑，会时不时看盘', '比较焦虑，频繁查看账户', '非常焦虑，影响睡眠或日常', '情绪接近失控，急需暂停'] },
+        { text: '如果买入后立即亏损5%，你会怎么做？', options: ['按原定止损计划执行，果断离场', '减仓观察，等确认方向后再决定', '重新分析基本面再决定去留', '加仓摊平成本等待反弹', '死扛不卖，相信总会涨回来', '加仓并取消止损'] },
         { text: '你对这笔交易盈利的信心有多大？', options: ['超过80%，有量化依据支撑', '约60%，信号总体向好', '约50%，胜算不确定', '约30%，把握不大', '不太确定能不能赚钱', '完全没概念，凭感觉'] },
-        { text: '你上一次交易的结果怎样？', options: ['盈利了，按计划止盈出场', '盈亏不大，基本按计划执行', '亏损了，但按计划止损了', '盈利了，但没按计划提前卖了', '亏损了，而且没有按计划止损'] },
-        { text: '你有明确的交易计划吗（入场理由/仓位/止损/止盈）？', options: ['有完整的书面计划，每次交易前都写好', '有大致思路，但没有明确数字', '心里有计划，但没有写下来', '大概想了一下，没有详细规划', '没有计划，看行情临时决定'] },
-        { text: '过去一个月你遵守交易计划了吗？', options: ['完全遵守，每笔交易都按计划执行', '大体遵守，但偶尔临场调整', '大部分遵守，偶尔小偏差', '偶尔遵守，常有临时冲动交易', '经常偏离计划，随心所欲交易'] },
-        { text: '你对当前大盘环境的判断？', options: ['有清晰依据（技术面/基本面），方向明确', '有一定判断，但把握不大', '跟主流观点一致，比较有信心', '不太确定，感觉市场方向不明', '没有分析，凭感觉判断'] },
-        { text: '你当前的仓位情况？', options: ['空仓或轻仓（< 总资金20%）', '轻仓（总资金20%-30%）', '中等仓位（总资金30%-50%）', '较重仓位（总资金50%-80%）', '满仓或接近满仓（> 80%）'] },
+        { text: '你上一次交易的结果怎样？', options: ['盈利了，按计划止盈出场', '盈亏不大，基本按计划执行', '亏损了，但按计划止损了', '盈利了，但没按计划提前卖了', '亏损了，而且没有按计划止损', '连续亏损，心态尚未恢复'] },
+        { text: '你有明确的交易计划吗（入场理由/仓位/止损/止盈）？', options: ['有完整的书面计划，每次交易前都写好', '有大致思路，但没有明确数字', '心里有计划，但没有写下来', '大概想了一下，没有详细规划', '没有计划，看行情临时决定', '经常凭冲动下单'] },
+        { text: '过去一个月你遵守交易计划了吗？', options: ['完全遵守，每笔交易都按计划执行', '大体遵守，但偶尔临场调整', '大部分遵守，偶尔小偏差', '偶尔遵守，常有临时冲动交易', '经常偏离计划，随心所欲交易', '几乎从未按计划执行'] },
+        { text: '你对当前大盘环境的判断？', options: ['有清晰依据（技术面/基本面），方向明确', '有一定判断，但把握不大', '跟主流观点一致，比较有信心', '不太确定，感觉市场方向不明', '没有分析，凭感觉判断', '完全没关注大盘'] },
+        { text: '你当前的仓位情况？', options: ['空仓或轻仓（< 总资金20%）', '轻仓（总资金20%-30%）', '中等仓位（总资金30%-50%）', '较重仓位（总资金50%-80%）', '满仓或接近满仓（> 80%）', '已加杠杆或借钱交易'] },
       ],
       psychAnswers: [null, null, null, null, null, null, null, null, null, null],
       indicatorSections: [
@@ -493,6 +506,7 @@ export default {
           expanded: false,
           fields: [
             { key: 'volume_ratio', label: '量比', type: 'number', step: 0.01, min: 0, placeholder: '1.0' },
+            { key: 'turnover_rate', label: '换手率 %', type: 'number', step: 0.01, min: 0, placeholder: '2.5' },
             {
               key: 'obv_direction', label: 'OBV 方向', type: 'select', placeholder: '选择',
               options: [
@@ -539,6 +553,7 @@ export default {
       historyModalDetail: null,
       showHistoryInputs: false,
       activeTab: 'indicators',
+      deletingId: null,
     }
   },
   computed: {
@@ -554,6 +569,9 @@ export default {
     },
     psychAllAnswered() { return this.psychAnswers.every(a => a !== null) },
     answeredCount() { return this.psychAnswers.filter(a => a !== null).length },
+    psychMaxScore() {
+      return this.psychQuestions.reduce((sum, q) => sum + (q.options.length - 1), 0)
+    },
     totalIndicatorCount() {
       return this.indicatorSections.reduce((sum, s) => sum + s.fields.length, 0)
     },
@@ -616,13 +634,17 @@ export default {
         { label: '盈亏比', value: inputs.rr_ratio },
         { label: '最大亏损比例', value: inputs.max_loss_pct != null ? inputs.max_loss_pct + '%' : null },
       ].filter(i => i.value !== undefined && i.value !== null)
-      const psychAnswers = inputs.psychology_answers ? this.denormalizePsychAnswers(inputs.psychology_answers) : []
+      const psychAnswers = inputs.psychology_answers || []
       const psych = psychAnswers.map((ans, idx) => {
         const q = this.psychQuestions[idx]
         if (!q) return null
         return { question: q.text, answer: q.options[ans] || '-' }
       }).filter(Boolean)
       return { sections, extra, psych }
+    },
+    historyModalTurnoverRate() {
+      const inputs = this.historyModalDetail && this.historyModalDetail.inputs
+      return inputs && inputs.turnover_rate != null ? inputs.turnover_rate : null
     },
   },
   watch: {
@@ -696,7 +718,11 @@ export default {
       this.analyzing = true
       this.result = null
       try {
-        const payload = { ...this.form, psychology_answers: this.normalizePsychAnswers() }
+        const payload = {
+          ...this.form,
+          psychology_answers: this.psychAnswers.map(a => a === null ? 0 : a),
+          psychology_max_score: this.psychMaxScore,
+        }
         const res = await analyzeETF(this.selectedETF, payload)
         this.result = res.data
         this.loadHistory()
@@ -720,19 +746,6 @@ export default {
     optionLabel(oi) {
       return String.fromCharCode(65 + oi)
     },
-    normalizePsychAnswers() {
-      return this.psychAnswers.map((a, idx) => {
-        if (a === null) return 0
-        const count = this.psychQuestions[idx].options.length
-        return Math.round(a * 3 / (count - 1))
-      })
-    },
-    denormalizePsychAnswers(normalized) {
-      return normalized.map((s, idx) => {
-        const count = this.psychQuestions[idx].options.length
-        return Math.round(s * (count - 1) / 3)
-      })
-    },
     async loadHistory() {
       try { const res = await getHistory(); this.history = res.data || [] } catch (e) {}
     },
@@ -752,7 +765,7 @@ export default {
               }
             })
             if (detail.inputs.psychology_answers) {
-              this.psychAnswers = this.denormalizePsychAnswers(detail.inputs.psychology_answers)
+              this.psychAnswers = detail.inputs.psychology_answers.map(a => a == null ? null : a)
             }
           }
           this.$nextTick(() => {
@@ -765,6 +778,7 @@ export default {
       }
     },
     async doDeleteHistory(id) {
+      if (this.deletingId === id) return
       const ok = await this.$confirm({
         title: '删除记录',
         message: '删除这条记录？此操作不可撤销。',
@@ -772,12 +786,15 @@ export default {
         cancelText: '取消',
       })
       if (!ok) return
+      this.deletingId = id
       try {
         await deleteHistory(id)
         this.history = this.history.filter(h => h.id !== id)
         this.$toast('已删除', 'success')
       } catch (e) {
         this.$toast('删除失败', 'error')
+      } finally {
+        this.deletingId = null
       }
     },
     openHistoryModal(h) {
@@ -845,11 +862,12 @@ export default {
   color: var(--ia-text-secondary);
   backdrop-filter: blur(var(--ia-glass-blur));
   -webkit-backdrop-filter: blur(var(--ia-glass-blur));
+  box-shadow: var(--ia-shadow-inset);
 }
 
-.data-badge.fresh { color: var(--ia-green); border-color: rgba(14, 203, 129, 0.25); box-shadow: 0 0 12px rgba(14, 203, 129, 0.08); }
-.data-badge.warn { color: var(--ia-gold); border-color: rgba(240, 185, 11, 0.25); box-shadow: 0 0 12px rgba(240, 185, 11, 0.08); }
-.data-badge.stale { color: var(--ia-red); border-color: rgba(246, 70, 93, 0.25); box-shadow: 0 0 12px rgba(246, 70, 93, 0.08); }
+.data-badge.fresh { color: var(--ia-green); border-color: rgba(14, 203, 129, 0.25); box-shadow: 0 0 14px rgba(14, 203, 129, 0.10); }
+.data-badge.warn { color: var(--ia-gold); border-color: rgba(240, 185, 11, 0.25); box-shadow: 0 0 14px rgba(240, 185, 11, 0.10); }
+.data-badge.stale { color: var(--ia-red); border-color: rgba(246, 70, 93, 0.25); box-shadow: 0 0 14px rgba(246, 70, 93, 0.10); }
 
 /* Setup */
 .setup-bar {
@@ -892,9 +910,27 @@ export default {
 /* Workspace */
 .workspace {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: 1fr 1fr;
+  align-items: stretch;
   gap: var(--ia-space-md);
   margin-bottom: var(--ia-space-xl);
+}
+
+.workspace-col {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.workspace-col >>> .ia-panel__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.workspace-col >>> .psych-list,
+.workspace-col >>> .indicator-groups {
+  flex: 1;
 }
 
 /* Indicator groups */
@@ -1007,11 +1043,11 @@ export default {
 .psych-list {
   display: flex;
   flex-direction: column;
-  gap: 0.9rem;
+  gap: 1rem;
 }
 
 .psych-item {
-  padding: 0.9rem 1rem;
+  padding: 1rem;
   border: 1px solid var(--ia-glass-border);
   border-radius: var(--ia-radius-sm);
   background: rgba(255, 255, 255, 0.015);
@@ -1026,13 +1062,13 @@ export default {
 .psych-item.done {
   border-color: rgba(14, 203, 129, 0.25);
   background: rgba(14, 203, 129, 0.04);
-  box-shadow: 0 0 12px rgba(14, 203, 129, 0.06);
+  box-shadow: 0 0 14px rgba(14, 203, 129, 0.08);
 }
 
 .psych-header {
   display: flex;
   gap: 0.65rem;
-  margin-bottom: 0.55rem;
+  margin-bottom: 0.65rem;
 }
 
 .psych-num {
@@ -1057,19 +1093,19 @@ export default {
 }
 
 .psych-options {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.55rem;
 }
 
 .opt-card {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.55rem;
-  padding: 0.6rem 0.75rem;
+  padding: 0.65rem 0.75rem;
   background: var(--ia-bg);
   border: 1px solid var(--ia-glass-border);
-  border-radius: var(--ia-radius-xs);
+  border-radius: var(--ia-radius-sm);
   color: var(--ia-text-secondary);
   cursor: pointer;
   font-size: var(--ia-font-size-sm);
@@ -1078,26 +1114,28 @@ export default {
   width: 100%;
   position: relative;
   overflow: hidden;
+  box-shadow: var(--ia-shadow-inset);
 }
 
 .opt-card:hover {
-  border-color: var(--ia-border-strong);
+  border-color: var(--ia-glass-border-warm);
   background: var(--ia-surface-hover);
   transform: translateY(-2px);
-  box-shadow: var(--ia-shadow-sm);
+  box-shadow: var(--ia-shadow-inset), var(--ia-shadow-sm);
 }
 
 .opt-card.picked {
   border-color: var(--ia-gold);
   background: var(--ia-gold-soft);
   color: var(--ia-gold);
-  box-shadow: 0 0 14px rgba(240, 185, 11, 0.12);
+  box-shadow: 0 0 18px rgba(240, 185, 11, 0.14), var(--ia-shadow-inset);
+  font-weight: 500;
 }
 
 .opt-key {
   flex-shrink: 0;
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1114,7 +1152,7 @@ export default {
 }
 
 .opt-card.picked .opt-key {
-  background: rgba(240, 185, 11, 0.2);
+  background: rgba(240, 185, 11, 0.22);
   color: var(--ia-gold);
 }
 
@@ -1147,7 +1185,7 @@ export default {
   border: 1px solid var(--ia-glass-border);
   border-radius: var(--ia-radius);
   padding: var(--ia-space-lg);
-  box-shadow: var(--ia-shadow-sm);
+  box-shadow: var(--ia-shadow-inset), var(--ia-shadow-sm);
   backdrop-filter: blur(var(--ia-glass-blur));
   -webkit-backdrop-filter: blur(var(--ia-glass-blur));
   text-align: center;
@@ -1174,8 +1212,8 @@ export default {
 
 .glass-card:hover {
   transform: translateY(-4px);
-  border-color: var(--ia-border-strong);
-  box-shadow: var(--ia-shadow-md), 0 0 20px rgba(240, 185, 11, 0.06);
+  border-color: var(--ia-glass-border-warm);
+  box-shadow: var(--ia-shadow-md), var(--ia-shadow-inset), 0 0 24px rgba(240, 185, 11, 0.08);
 }
 
 .glass-card.bullish::before { background: var(--ia-green); }
@@ -1289,6 +1327,7 @@ export default {
   background: rgba(255, 255, 255, 0.015);
   border: 1px solid var(--ia-glass-border);
   transition: all var(--ia-transition-fast);
+  box-shadow: var(--ia-shadow-inset);
 }
 
 .tech-item:hover {
@@ -1336,10 +1375,11 @@ export default {
   transition: all var(--ia-transition-fast);
   backdrop-filter: blur(var(--ia-glass-blur));
   -webkit-backdrop-filter: blur(var(--ia-glass-blur));
+  box-shadow: var(--ia-shadow-inset);
 }
 
 .history-card:hover {
-  border-color: var(--ia-gold);
+  border-color: var(--ia-glass-border-warm);
   background: var(--ia-gold-soft);
   transform: translateY(-3px);
   box-shadow: var(--ia-shadow-gold);
@@ -1378,8 +1418,8 @@ export default {
 }
 
 .history-card__del {
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   border-radius: var(--ia-radius-xs);
   border: 1px solid var(--ia-glass-border);
   background: transparent;
@@ -1393,11 +1433,22 @@ export default {
   margin-top: 0.1rem;
 }
 
-.history-card__del:hover {
+.history-card__del:hover:not(:disabled) {
   background: var(--ia-red-soft);
   border-color: var(--ia-red);
   color: var(--ia-red);
-  box-shadow: 0 0 12px rgba(246, 70, 93, 0.1);
+  box-shadow: 0 0 14px rgba(246, 70, 93, 0.12);
+}
+
+.history-card__del:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.history-card__del--loading {
+  color: var(--ia-gold);
+  border-color: var(--ia-gold);
+  background: var(--ia-gold-soft);
 }
 
 /* History Detail Modal */
@@ -1412,11 +1463,32 @@ export default {
   border: 1px solid var(--ia-glass-border);
   border-radius: var(--ia-radius);
   padding: var(--ia-space-lg);
+  box-shadow: var(--ia-shadow-inset);
+}
+
+.hd-etf-row {
+  display: flex;
+  align-items: center;
+  gap: var(--ia-space-sm);
+  margin-bottom: var(--ia-space-md);
+  padding-bottom: var(--ia-space-md);
+  border-bottom: 1px solid var(--ia-glass-border);
+}
+
+.hd-etf-row svg,
+.hd-etf-row .ia-icon {
+  color: var(--ia-gold);
+}
+
+.hd-etf-name {
+  font-size: var(--ia-font-size-xl);
+  font-weight: 600;
+  color: var(--ia-text);
 }
 
 .hd-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   gap: var(--ia-space-md);
 }
 
@@ -1451,6 +1523,7 @@ export default {
   display: flex;
   flex-direction: column;
   gap: var(--ia-space-lg);
+  box-shadow: var(--ia-shadow-inset);
 }
 
 .hd-input-section {
@@ -1532,6 +1605,10 @@ export default {
     grid-template-columns: 1fr;
   }
 
+  .workspace-col >>> .ia-panel__body {
+    display: block;
+  }
+
   .group-fields {
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   }
@@ -1555,6 +1632,10 @@ export default {
   }
 
   .group-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .psych-options {
     grid-template-columns: 1fr;
   }
 

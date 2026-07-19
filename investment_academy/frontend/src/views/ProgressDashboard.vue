@@ -131,7 +131,9 @@ export default {
       this.progress.forEach(p => { map[p.chapter_id] = p })
       return map
     },
-    totalCount() { return 34 },
+    totalCount() {
+      return Object.values(PHASE_DEFS).reduce((sum, p) => sum + p.chapters.length, 0)
+    },
     completedCount() { return this.progress.filter(p => p.completed).length },
     overallPct() { return Math.round((this.completedCount / this.totalCount) * 100) },
     avgScore() {

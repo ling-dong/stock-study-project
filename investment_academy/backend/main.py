@@ -1,4 +1,5 @@
 """投资学院 — FastAPI 后端入口"""
+import os
 import sys
 from pathlib import Path
 
@@ -7,8 +8,16 @@ ACADEMY_ROOT = BACKEND_DIR.parent
 if str(ACADEMY_ROOT) not in sys.path:
     sys.path.insert(0, str(ACADEMY_ROOT))
 
-from fastapi import FastAPI
+from dotenv import load_dotenv
+
+# 从项目根目录加载 .env
+_env_path = ACADEMY_ROOT.parent / ".env"
+if _env_path.exists():
+    load_dotenv(_env_path, override=True)
+
+from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from datetime import datetime
 
 from backend.routers import content, quiz, progress, market, sandbox, user, knowledge, spas, manual_analysis
@@ -19,12 +28,26 @@ app = FastAPI(
     version="0.1.0",
 )
 
-# CORS — 允许 Vue devServer 和任何本地访问
+
+@app.exception_handler(Exception)
+def global_exception_handler(request: Request, exc: Exception):
+    """全局未捕获异常：记录日志并返回统一 500，不泄露内部堆栈"""
+    import logging
+    logging.getLogger("investment_academy").exception(
+        "未处理的异常: %s %s", request.method, request.url.path
+    )
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={"detail": "服务器内部错误，请稍后重试或查看日志"},
+    )
+
+# CORS — 仅允许本地开发源，生产环境应进一步收紧
+_cors_origins = os.environ.get("CORS_ORIGINS", "http://localhost:8080,http://127.0.0.1:8080").split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
+    allow_origins=[o.strip() for o in _cors_origins if o.strip()],
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["*"],
 )
 

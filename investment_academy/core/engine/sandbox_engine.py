@@ -71,11 +71,13 @@ class SandboxEngine:
                 raise ValueError(f"缺少必要列: {col}")
 
         self.df = df.sort_values("trade_date").reset_index(drop=True)
+        self.initial_cash = initial_cash
         self.state = SandboxState(
             cash=initial_cash,
             total_bars=len(df),
         )
         self._last_buy_date: Optional[str] = None
+        self._buy_dates: dict[str, int] = {}  # 记录每次买入的日期和股数，用于 T+1 校验
 
     @property
     def current_bar(self) -> dict:
@@ -113,10 +115,6 @@ class SandboxEngine:
 
         bar = self.current_bar
         price = bar["close"]
-
-        # 检查 T+1
-        if self.T_PLUS_1 and self._last_buy_date == bar["date"]:
-            return False, "T+1 制度：当日买入的股票次日才能卖出"
 
         # 检查资金
         shares = self._calc_max_shares(price)
@@ -172,6 +170,7 @@ class SandboxEngine:
         )
         self.state.trades.append(trade)
         self._last_buy_date = bar["date"]
+        self._buy_dates[bar["date"]] = self._buy_dates.get(bar["date"], 0) + shares
         return trade
 
     def can_sell(self) -> tuple[bool, str]:
@@ -180,6 +179,11 @@ class SandboxEngine:
             return False, "回测已结束"
         if self.state.shares <= 0:
             return False, "没有持仓"
+
+        bar = self.current_bar
+        if self.T_PLUS_1 and self._buy_dates.get(bar["date"]):
+            return False, "T+1 制度：当日买入的股票次日才能卖出"
+
         return True, f"可卖出 {self.state.shares} 股"
 
     def sell(self, shares: int, reason: str = "") -> Optional[Trade]:
@@ -254,12 +258,12 @@ class SandboxEngine:
         total_costs = sum(t.cost for t in self.state.trades)
 
         return PerformanceReport(
-            initial_cash=100000.0,
+            initial_cash=self.initial_cash,
             final_cash=self.state.cash,
             final_shares=self.state.shares,
             final_price=final_price,
             total_value=total_value,
-            total_return_pct=(total_value - 100000.0) / 100000.0 * 100,
+            total_return_pct=(total_value - self.initial_cash) / self.initial_cash * 100,
             total_trades=len(self.state.trades),
             winning_trades=winning,
             losing_trades=losing,
@@ -272,7 +276,7 @@ class SandboxEngine:
     def get_equity_curve(self) -> pd.DataFrame:
         """获取权益曲线（用于绘图）"""
         records = []
-        cash = 100000.0
+        cash = self.initial_cash
         shares = 0
 
         trade_idx = 0
@@ -311,7 +315,7 @@ class SandboxEngine:
 
     def _calc_max_shares(self, price: float) -> int:
         """计算最大可买股数（按100股取整）"""
-        est_cost_rate = self.COMMISSION + (0 if True else self.STAMP_DUTY)
+        est_cost_rate = self.COMMISSION
         available = self.state.cash / (price * (1 + self.SLIPPAGE) * (1 + est_cost_rate))
         shares = int(available / 100) * 100
         return max(shares, 0)

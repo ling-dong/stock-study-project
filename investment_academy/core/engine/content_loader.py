@@ -3,7 +3,19 @@ from pathlib import Path
 from typing import Optional
 import yaml
 
+from core.utils.path_utils import validate_content_id, validate_chapter_filename
+
 CONTENT_ROOT = Path(__file__).resolve().parent.parent.parent / "content"
+
+
+def _safe_dir(base: Path, *parts: str) -> Optional[Path]:
+    """拼接并解析路径，确保最终路径落在 base 目录内"""
+    path = base.joinpath(*parts).resolve()
+    try:
+        path.relative_to(base.resolve())
+    except ValueError:
+        return None
+    return path
 
 
 def list_phases() -> list[dict]:
@@ -44,8 +56,10 @@ def list_labs() -> list[dict]:
 
 def list_chapters(phase_id: str) -> list[dict]:
     """列出某阶段的所有章节（文件 + ID + 标题）"""
-    phase_dir = CONTENT_ROOT / "knowledge_track" / phase_id
-    if not phase_dir.exists():
+    if not validate_content_id(phase_id):
+        return []
+    phase_dir = _safe_dir(CONTENT_ROOT, "knowledge_track", phase_id)
+    if phase_dir is None or not phase_dir.exists():
         return []
     md_files = sorted(phase_dir.glob("chapter_*.md"))
     chapters = []
@@ -70,8 +84,10 @@ def list_chapters(phase_id: str) -> list[dict]:
 
 def load_chapter(phase_id: str, chapter_file: str) -> Optional[str]:
     """加载章节 Markdown 内容"""
-    path = CONTENT_ROOT / "knowledge_track" / phase_id / chapter_file
-    if not path.exists():
+    if not validate_content_id(phase_id) or not validate_chapter_filename(chapter_file):
+        return None
+    path = _safe_dir(CONTENT_ROOT, "knowledge_track", phase_id, chapter_file)
+    if path is None or not path.exists():
         return None
     return path.read_text(encoding="utf-8")
 
@@ -83,8 +99,12 @@ def load_quiz(phase_id: str, chapter_id: str = None) -> Optional[dict]:
         phase_id: 阶段 ID，如 'p1_basics'
         chapter_id: 章节 ID，如 'p1_ch1'。不传则返回全部章节的测验
     """
-    path = CONTENT_ROOT / "knowledge_track" / phase_id / "quiz.yaml"
-    if not path.exists():
+    if not validate_content_id(phase_id):
+        return None
+    if chapter_id is not None and not validate_content_id(chapter_id):
+        return None
+    path = _safe_dir(CONTENT_ROOT, "knowledge_track", phase_id, "quiz.yaml")
+    if path is None or not path.exists():
         return None
     with open(path, "r", encoding="utf-8") as f:
         data = yaml.safe_load(f)
@@ -101,16 +121,20 @@ def load_quiz(phase_id: str, chapter_id: str = None) -> Optional[dict]:
 
 def load_lab_guide(lab_id: str) -> Optional[str]:
     """加载实验室指南"""
-    path = CONTENT_ROOT / "practice_track" / lab_id / "lab_guide.md"
-    if not path.exists():
+    if not validate_content_id(lab_id):
+        return None
+    path = _safe_dir(CONTENT_ROOT, "practice_track", lab_id, "lab_guide.md")
+    if path is None or not path.exists():
         return None
     return path.read_text(encoding="utf-8")
 
 
 def load_lab_exercises(lab_id: str) -> Optional[dict]:
     """加载实验室练习"""
-    path = CONTENT_ROOT / "practice_track" / lab_id / "exercises.yaml"
-    if not path.exists():
+    if not validate_content_id(lab_id):
+        return None
+    path = _safe_dir(CONTENT_ROOT, "practice_track", lab_id, "exercises.yaml")
+    if path is None or not path.exists():
         return None
     with open(path, "r", encoding="utf-8") as f:
         return yaml.safe_load(f)

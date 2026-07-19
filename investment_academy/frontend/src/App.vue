@@ -1,5 +1,5 @@
 <template>
-  <div id="app-root" :class="{ 'sidebar-collapsed': collapsed, 'sidebar-mobile-open': !collapsed && isMobile }" :style="rootStyle">
+  <div id="app-root" :class="rootClass" :style="rootStyle">
     <aside class="sidebar">
       <div class="sidebar-brand">
         <div class="brand-icon">
@@ -9,10 +9,11 @@
           投资学院
           <span>Investment Academy</span>
         </div>
-        <button class="sidebar-toggle" @click="toggleSidebar" :title="collapsed ? '展开侧边栏' : '收起侧边栏'">
-          <IAIcon :name="collapsed ? 'chevron-right' : 'chevron-left'" size="md" />
-        </button>
       </div>
+
+      <button class="sidebar-toggle" @click="toggleSidebar" :title="collapsed ? '展开侧边栏' : '收起侧边栏'">
+        <IAIcon :name="collapsed ? 'chevron-right' : 'chevron-left'" size="md" />
+      </button>
 
       <nav class="sidebar-nav">
         <div class="nav-section">
@@ -106,6 +107,27 @@
         </button>
         <span class="mobile-header__title">投资学院</span>
       </div>
+
+      <div class="theme-picker">
+        <button class="theme-picker__btn" @click="themeOpen = !themeOpen" title="切换背景与主题">
+          <IAIcon name="settings" size="md" />
+        </button>
+        <transition name="fade">
+          <div v-if="themeOpen" class="theme-picker__panel" v-click-outside="closeTheme">
+            <div
+              v-for="t in themes"
+              :key="t.key"
+              class="theme-option"
+              :class="{ active: currentTheme === t.key }"
+              @click="setTheme(t.key)"
+            >
+              <span class="theme-swatch" :style="{ background: t.color }"></span>
+              <span class="theme-label">{{ t.label }}</span>
+            </div>
+          </div>
+        </transition>
+      </div>
+
       <transition name="page" mode="out-in">
         <router-view />
       </transition>
@@ -121,6 +143,21 @@ import { healthCheck } from './api/index'
 export default {
   name: 'App',
   components: { IAIcon, IATooltip },
+  directives: {
+    'click-outside': {
+      bind(el, binding, vnode) {
+        el._clickOutside = (e) => {
+          if (!el.contains(e.target)) {
+            vnode.context[binding.expression]()
+          }
+        }
+        document.addEventListener('click', el._clickOutside, true)
+      },
+      unbind(el) {
+        document.removeEventListener('click', el._clickOutside, true)
+      },
+    },
+  },
   data() {
     const savedTheme = typeof localStorage !== 'undefined' ? localStorage.getItem('ia-bg-theme') : 'dark'
     return {
@@ -129,25 +166,40 @@ export default {
       apiOk: false,
       collapsed: false,
       isMobile: false,
-      bgTheme: savedTheme || 'dark',
-      bgThemes: {
-        dark: '#08080C',
-        navy: '#0A0F1C',
-        graphite: '#121212',
-        plum: '#150C18',
-        ink: '#0C0A0F',
-      },
+      themeOpen: false,
+      currentTheme: savedTheme || 'dark',
+      themes: [
+        { key: 'dark', label: '深邃黑', color: '#0F0E12' },
+        { key: 'navy', label: '暗夜蓝', color: '#0A0F1C' },
+        { key: 'graphite', label: '石墨灰', color: '#121212' },
+        { key: 'plum', label: '暗梅紫', color: '#150C18' },
+        { key: 'coffee', label: '暖咖棕', color: '#12100C' },
+        { key: 'light', label: '暖白', color: '#F7F3EF' },
+      ],
     }
   },
   computed: {
+    rootClass() {
+      const classes = { 'sidebar-collapsed': this.collapsed, 'sidebar-mobile-open': !this.collapsed && this.isMobile }
+      if (this.currentTheme === 'light') classes['ia-light'] = true
+      return classes
+    },
     rootStyle() {
-      return { '--ia-bg': this.bgThemes[this.bgTheme] || this.bgThemes.dark }
+      const t = this.currentTheme
+      if (t === 'light') return { '--ia-bg': '#F7F3EF' }
+      const map = {
+        dark: '#0F0E12',
+        navy: '#0A0F1C',
+        graphite: '#121212',
+        plum: '#150C18',
+        coffee: '#12100C',
+      }
+      return { '--ia-bg': map[t] || map.dark }
     },
   },
   async created() {
     this.checkMobile()
     window.addEventListener('resize', this.checkMobile)
-    window.addEventListener('ia-bg-theme', this.onBgTheme)
     try {
       await healthCheck()
       this.apiOk = true
@@ -164,7 +216,6 @@ export default {
   },
   beforeDestroy() {
     window.removeEventListener('resize', this.checkMobile)
-    window.removeEventListener('ia-bg-theme', this.onBgTheme)
   },
   methods: {
     checkMobile() {
@@ -173,12 +224,13 @@ export default {
     toggleSidebar() {
       this.collapsed = !this.collapsed
     },
-    onBgTheme(e) {
-      const t = e.detail
-      if (this.bgThemes[t]) {
-        this.bgTheme = t
-        if (typeof localStorage !== 'undefined') localStorage.setItem('ia-bg-theme', t)
-      }
+    setTheme(key) {
+      this.currentTheme = key
+      if (typeof localStorage !== 'undefined') localStorage.setItem('ia-bg-theme', key)
+      this.themeOpen = false
+    },
+    closeTheme() {
+      this.themeOpen = false
     },
     formatPhaseLabel(id) {
       const map = {
@@ -209,6 +261,7 @@ export default {
   display: flex;
   min-height: 100vh;
   background: var(--ia-bg);
+  color: var(--ia-text);
 }
 
 /* Sidebar */
@@ -227,6 +280,7 @@ export default {
   transition: width 0.25s ease, min-width 0.25s ease, transform 0.25s ease;
   backdrop-filter: blur(var(--ia-glass-blur));
   -webkit-backdrop-filter: blur(var(--ia-glass-blur));
+  box-shadow: var(--ia-shadow-inset), 4px 0 24px rgba(0, 0, 0, 0.18);
   z-index: 101;
 }
 
@@ -240,17 +294,17 @@ export default {
 }
 
 .brand-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: var(--ia-gold-soft);
   color: var(--ia-gold);
-  border: 1px solid rgba(240, 185, 11, 0.15);
+  border: 1px solid rgba(240, 185, 11, 0.18);
   flex-shrink: 0;
-  box-shadow: 0 0 12px rgba(240, 185, 11, 0.08);
+  box-shadow: 0 0 16px rgba(240, 185, 11, 0.10);
 }
 
 .brand-text {
@@ -274,32 +328,34 @@ export default {
 }
 
 .sidebar-toggle {
-  width: 34px;
-  height: 34px;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  background: rgba(255, 255, 255, 0.10);
-  color: #ffffff;
+  position: absolute;
+  right: -15px;
+  top: 22px;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 2px solid var(--ia-gold);
+  background: var(--ia-surface-elevated);
+  color: var(--ia-gold);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   transition: all var(--ia-transition-fast);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(240, 185, 11, 0.08);
-  backdrop-filter: blur(4px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35), 0 0 16px rgba(240, 185, 11, 0.25);
+  z-index: 102;
 }
 
 .sidebar-toggle:hover {
-  color: #ffffff;
-  border-color: var(--ia-gold);
-  background: var(--ia-gold-soft);
-  box-shadow: 0 0 14px rgba(240, 185, 11, 0.35), 0 2px 8px rgba(0, 0, 0, 0.2);
-  transform: translateX(-1px);
+  background: var(--ia-gold);
+  color: var(--ia-bg);
+  transform: scale(1.08);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.4), 0 0 22px rgba(240, 185, 11, 0.35);
 }
 
 .sidebar-toggle:active {
-  transform: scale(0.95);
+  transform: scale(0.96);
 }
 
 .sidebar-nav {
@@ -328,8 +384,8 @@ export default {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.55rem 0.7rem;
-  border-radius: var(--ia-radius-xs);
+  padding: 0.6rem 0.75rem;
+  border-radius: var(--ia-radius-sm);
   font-size: 0.85rem;
   color: var(--ia-text-secondary);
   text-decoration: none;
@@ -337,19 +393,22 @@ export default {
   white-space: nowrap;
   overflow: hidden;
   border: 1px solid transparent;
+  margin-bottom: 0.15rem;
 }
 
 .nav-item:hover {
   background: rgba(255, 255, 255, 0.04);
   color: var(--ia-text);
   border-color: var(--ia-glass-border);
+  transform: translateX(2px);
 }
 
 .nav-item--active {
   background: var(--ia-gold-soft);
   color: var(--ia-gold);
-  border: 1px solid rgba(240, 185, 11, 0.18);
-  box-shadow: 0 0 12px rgba(240, 185, 11, 0.06);
+  border: 1px solid rgba(240, 185, 11, 0.22);
+  box-shadow: 0 0 14px rgba(240, 185, 11, 0.08), var(--ia-shadow-inset);
+  font-weight: 500;
 }
 
 .nav-label {
@@ -403,6 +462,92 @@ export default {
   position: relative;
 }
 
+/* Theme picker */
+.theme-picker {
+  position: fixed;
+  top: 1.1rem;
+  right: 1.1rem;
+  z-index: 200;
+}
+
+.theme-picker__btn {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 1px solid var(--ia-gold);
+  background: var(--ia-surface-elevated);
+  color: var(--ia-gold);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--ia-transition-fast);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.32), 0 0 18px rgba(240, 185, 11, 0.18);
+  backdrop-filter: blur(6px);
+}
+
+.theme-picker__btn:hover {
+  background: var(--ia-gold);
+  color: var(--ia-bg);
+  transform: translateY(-2px) rotate(15deg);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35), 0 0 28px rgba(240, 185, 11, 0.30);
+}
+
+.theme-picker__btn:active {
+  transform: scale(0.95);
+}
+
+.theme-picker__panel {
+  position: absolute;
+  top: calc(100% + 0.6rem);
+  right: 0;
+  min-width: 170px;
+  padding: 0.7rem;
+  background: var(--ia-surface-elevated);
+  border: 1px solid var(--ia-border-strong);
+  border-radius: var(--ia-radius);
+  box-shadow: var(--ia-shadow-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  animation: ia-scale-in 0.25s var(--ia-transition-spring) forwards;
+}
+
+.theme-option {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.55rem 0.8rem;
+  border-radius: var(--ia-radius-sm);
+  cursor: pointer;
+  transition: all var(--ia-transition-fast);
+}
+
+.theme-option:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.theme-option.active {
+  background: var(--ia-gold-soft);
+  border: 1px solid rgba(240, 185, 11, 0.18);
+}
+
+.theme-swatch {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid var(--ia-glass-border);
+  flex-shrink: 0;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+}
+
+.theme-label {
+  font-size: var(--ia-font-size-sm);
+  color: var(--ia-text);
+  white-space: nowrap;
+}
+
+/* Mobile header */
 .mobile-header {
   display: none;
   align-items: center;
@@ -420,7 +565,7 @@ export default {
 .mobile-header__toggle {
   width: 34px;
   height: 34px;
-  border-radius: var(--ia-radius-xs);
+  border-radius: var(--ia-radius-sm);
   border: 1px solid var(--ia-glass-border);
   background: transparent;
   color: var(--ia-text);
@@ -464,12 +609,16 @@ export default {
 
 .sidebar-collapsed .nav-item {
   justify-content: center;
-  padding: 0.65rem;
+  padding: 0.75rem;
 }
 
 .sidebar-collapsed .api-badge {
   padding: 0.5rem;
   border-radius: 50%;
+}
+
+.sidebar-collapsed .api-badge .api-dot {
+  margin: 0;
 }
 
 .sidebar-collapsed .sidebar-brand {
@@ -480,13 +629,10 @@ export default {
 }
 
 .sidebar-collapsed .sidebar-toggle {
-  width: 30px;
-  height: 30px;
-  margin: 0.4rem auto 0;
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  background: rgba(255, 255, 255, 0.10);
-  color: #ffffff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(240, 185, 11, 0.08);
+  position: static;
+  width: 34px;
+  height: 34px;
+  margin: 0.6rem auto 0;
 }
 
 .sidebar-collapsed .sidebar-footer {
@@ -521,6 +667,17 @@ export default {
   }
   .mobile-header {
     display: flex;
+  }
+  .sidebar-toggle {
+    display: none;
+  }
+  .theme-picker {
+    top: 0.6rem;
+    right: 0.6rem;
+  }
+  .theme-picker__btn {
+    width: 40px;
+    height: 40px;
   }
 }
 

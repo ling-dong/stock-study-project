@@ -1,11 +1,11 @@
 <template>
   <transition name="modal-fade">
     <div v-if="visible" class="ia-modal-overlay" @click.self="close">
-      <div class="ia-modal" role="dialog" aria-modal="true">
+      <div class="ia-modal" role="dialog" aria-modal="true" tabindex="-1" ref="modal" @keydown.esc="close">
         <div class="ia-modal__header">
           <h3 class="ia-modal__title">{{ title }}</h3>
           <button class="ia-modal__close" @click="close" aria-label="关闭">
-            <IAIcon name="close" size="sm" />
+            <IAIcon name="close" size="md" />
           </button>
         </div>
         <div ref="body" class="ia-modal__body">
@@ -28,6 +28,16 @@ export default {
   props: {
     visible: { type: Boolean, default: false },
     title: { type: String, default: '' },
+  },
+  watch: {
+    visible(val) {
+      if (val) {
+        this.$nextTick(() => {
+          const modal = this.$refs.modal
+          if (modal) modal.focus()
+        })
+      }
+    },
   },
   methods: {
     close() {
@@ -53,17 +63,19 @@ export default {
 
 .ia-modal {
   width: 100%;
-  max-width: 640px;
+  min-width: 560px;
+  max-width: 720px;
   max-height: 86vh;
   overflow: hidden;
   display: flex;
   flex-direction: column;
   background: var(--ia-surface-elevated);
   border: 1px solid var(--ia-border-strong);
-  border-radius: var(--ia-radius-lg);
+  border-radius: var(--ia-radius-xl);
   box-shadow: var(--ia-shadow-lg), 0 0 0 1px rgba(255, 255, 255, 0.04);
   transform-origin: center;
   margin: auto;
+  outline: none;
 }
 
 .ia-modal__header {
@@ -85,8 +97,8 @@ export default {
 }
 
 .ia-modal__close {
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   border-radius: var(--ia-radius);
   border: 1px solid var(--ia-glass-border);
   background: transparent;
@@ -103,6 +115,7 @@ export default {
   border-color: var(--ia-gold);
   color: var(--ia-gold);
   background: var(--ia-gold-soft);
+  transform: rotate(90deg);
 }
 
 .ia-modal__body {
@@ -113,11 +126,15 @@ export default {
 .ia-modal__footer {
   display: flex;
   justify-content: flex-end;
-  gap: var(--ia-space-md);
+  gap: var(--ia-space-lg);
   padding: var(--ia-space-lg) var(--ia-space-2xl);
   border-top: 1px solid var(--ia-glass-border);
   background: rgba(255, 255, 255, 0.02);
   flex-shrink: 0;
+}
+
+.ia-modal__footer ::v-deep .ia-btn {
+  min-width: 120px;
 }
 
 .modal-fade-enter-active,
@@ -147,6 +164,7 @@ export default {
     align-items: flex-end;
   }
   .ia-modal {
+    min-width: auto;
     max-width: 100vw;
     max-height: 92vh;
     border-radius: var(--ia-radius-lg) var(--ia-radius-lg) 0 0;

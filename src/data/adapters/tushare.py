@@ -24,13 +24,33 @@ class TushareAdapter(DataAdapter):
     }
 
     def __init__(self, token: Optional[str] = None, api_url: Optional[str] = None):
-        self.token = token
+        self.token = token or self._token_from_env()
         self.api_url = api_url or "https://ts.gyzcloud.top/api"
         self._pro = None
         self._healthy = True
 
-        if token:
+        if self.token:
             self._init_pro()
+        else:
+            self._healthy = False
+            logger.warning("TUSHARE_TOKEN 未设置，Tushare 数据源不可用")
+
+    @staticmethod
+    def _token_from_env() -> Optional[str]:
+        import os
+        env_path = ".env"
+        if os.path.exists(env_path):
+            with open(env_path, encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if not line or line.startswith("#") or "=" not in line:
+                        continue
+                    key, value = line.split("=", 1)
+                    key = key.strip()
+                    value = value.strip().strip('"').strip("'")
+                    if key == "TUSHARE_TOKEN" and key not in os.environ:
+                        os.environ[key] = value
+        return os.environ.get("TUSHARE_TOKEN")
 
     def _init_pro(self):
         try:

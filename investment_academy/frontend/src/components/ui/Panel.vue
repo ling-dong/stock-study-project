@@ -1,5 +1,5 @@
 <template>
-  <div class="ia-panel" :class="{ 'ia-panel--loading': loading }">
+  <div class="ia-panel" :class="[{ 'ia-panel--loading': loading }, panelClass]">
     <div v-if="title || subtitle || $slots['header-actions'] || icon" class="ia-panel__header">
       <div v-if="icon" class="ia-panel__icon" :class="{ 'ia-panel__icon--sm': compact }">
         <IAIcon v-if="typeof icon === 'string'" :name="icon" size="md" />
@@ -38,11 +38,17 @@ export default {
     loading: { type: Boolean, default: false },
     compact: { type: Boolean, default: false },
     bodyClass: { type: String, default: '' },
+    panelClass: { type: String, default: '' },
   },
 }
 </script>
 
 <style scoped>
+.ia-panel {
+  border-radius: var(--ia-radius);
+  overflow: hidden;
+}
+
 .ia-panel__loading {
   display: flex;
   align-items: center;
@@ -51,5 +57,9 @@ export default {
   padding: var(--ia-space-xl);
   color: var(--ia-text-secondary);
   font-size: var(--ia-font-size-md);
+}
+
+.ia-panel--loading .ia-panel__body {
+  min-height: 160px;
 }
 </style>
