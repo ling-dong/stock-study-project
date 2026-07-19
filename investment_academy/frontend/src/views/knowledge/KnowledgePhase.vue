@@ -175,24 +175,28 @@ export default {
   align-items: center;
   gap: 0.3rem;
   padding: 0.5rem 0.9rem;
-  background: var(--ia-surface);
-  border: 1px solid var(--ia-border);
+  background: var(--ia-surface-glass);
+  border: 1px solid var(--ia-glass-border);
   border-radius: var(--ia-radius-xs);
   color: var(--ia-text-secondary);
   font-size: var(--ia-font-size-sm);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all var(--ia-transition-fast);
+  backdrop-filter: blur(var(--ia-glass-blur));
+  -webkit-backdrop-filter: blur(var(--ia-glass-blur));
 }
 
 .tab-btn:hover {
-  background: var(--ia-surface-hover);
+  background: rgba(255, 255, 255, 0.05);
   color: var(--ia-text);
+  border-color: var(--ia-border-strong);
 }
 
 .tab-btn--active {
   background: var(--ia-gold-soft);
   border-color: rgba(240, 185, 11, 0.25);
   color: var(--ia-gold);
+  box-shadow: 0 0 12px rgba(240, 185, 11, 0.06);
 }
 
 .tab-btn--done {
@@ -207,5 +211,10 @@ export default {
   display: flex;
   flex-direction: column;
   gap: var(--ia-space-md);
+}
+
+@media (max-width: 640px) {
+  .chapter-tabs { overflow-x: auto; flex-wrap: nowrap; }
+  .tab-btn { white-space: nowrap; }
 }
 </style>

@@ -124,7 +124,7 @@ export default {
         this.result = res.data
         this.submitted = true
         this.$emit('quiz-result', { passed: res.data.passed, score: res.data.score, chapterId: this.chapterId })
-      } catch (e) { alert('提交失败: ' + (e.response?.data?.detail || e.message)) }
+      } catch (e) { this.$toast('提交失败: ' + (e.response?.data?.detail || e.message), 'error') }
       finally { this.submitting = false }
     },
     resetQuiz() { this.userAnswers = {}; this.multiAnswers = {}; this.submitted = false; this.result = null },
@@ -143,21 +143,24 @@ export default {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem 0.7rem;
+  padding: 0.6rem 0.85rem;
   border-radius: var(--ia-radius-xs);
   cursor: pointer;
   font-size: var(--ia-font-size-sm);
   color: var(--ia-text-secondary);
-  transition: background 0.15s;
-  border: 1px solid transparent;
+  transition: all var(--ia-transition-fast);
+  border: 1px solid var(--ia-glass-border);
+  background: rgba(255, 255, 255, 0.02);
+  width: 100%;
 }
 
-.q-option:hover { background: var(--ia-surface-hover); }
+.q-option:hover { background: rgba(255, 255, 255, 0.04); border-color: var(--ia-border-strong); }
 
 .q-option--selected {
   background: var(--ia-gold-soft);
-  border-color: rgba(240, 185, 11, 0.25);
+  border-color: rgba(240, 185, 11, 0.3);
   color: var(--ia-gold);
+  box-shadow: 0 0 12px rgba(240, 185, 11, 0.06);
 }
 
 .q-option input { accent-color: var(--ia-gold); }
@@ -172,6 +175,8 @@ export default {
   border-radius: var(--ia-radius-xs);
   margin-bottom: 0.8rem;
   font-size: var(--ia-font-size-md);
+  backdrop-filter: blur(var(--ia-glass-blur));
+  -webkit-backdrop-filter: blur(var(--ia-glass-blur));
 }
 
 .result-pass { background: var(--ia-green-soft); border: 1px solid rgba(14, 203, 129, 0.2); color: var(--ia-green); }
@@ -181,11 +186,11 @@ export default {
 
 .result-item {
   padding: 0.5rem 0.8rem;
-  border-radius: 4px;
+  border-radius: var(--ia-radius-xs);
   font-size: var(--ia-font-size-sm);
   color: var(--ia-text-secondary);
   border-left: 3px solid var(--ia-red);
-  background: rgba(255, 255, 255, 0.015);
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .result-item--correct { border-left-color: var(--ia-green); }

@@ -6,7 +6,7 @@ import yaml
 
 import pandas as pd
 
-# SPAS 项目根目录（向上两级：bridge/ -> investment_academy/ -> D:\stock_market\）
+# SPAS 项目根目录：bridge/ -> investment_academy/ -> 项目根目录
 SPAS_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 SPAS_DATA_DIR = SPAS_ROOT / "data"
 

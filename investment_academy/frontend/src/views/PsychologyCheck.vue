@@ -14,7 +14,8 @@
         <div class="q-slider">
           <label v-for="n in 5" :key="n" class="q-radio" :class="{ picked: scores[q.key] === n }">
             <input type="radio" :value="n" v-model="scores[q.key]" />
-            <span>{{ n }}</span>
+            <span class="score-num">{{ n }}</span>
+            <span class="score-label">{{ scoreLabel(n) }}</span>
           </label>
         </div>
       </div>
@@ -126,8 +127,9 @@ export default {
           self_notes: this.notes,
         })
         this.showResult = true
+        this.$toast('心理测评已提交', 'success')
         await this.loadHistory()
-      } catch (e) { alert('提交失败: ' + (e.response?.data?.detail || e.message)) }
+      } catch (e) { this.$toast('提交失败: ' + (e.response?.data?.detail || e.message), 'error') }
       finally { this.submitting = false }
     },
     async loadHistory() {
@@ -138,6 +140,10 @@ export default {
     },
     resetCheck() { this.scores = {}; this.notes = ''; this.showResult = false },
     formatTime(ts) { return ts ? ts.replace('T', ' ').substring(0, 19) : '' },
+    scoreLabel(n) {
+      const map = { 1: '完全不符', 2: '不太符合', 3: '一般', 4: '比较符合', 5: '非常符合' }
+      return map[n] || ''
+    },
     levelLabel(l) {
       const map = { green: '低风险', yellow: '中风险', red: '高风险' }
       return map[l] || l
@@ -151,37 +157,60 @@ export default {
 </script>
 
 <style scoped>
-.q-row { margin-bottom: var(--ia-space-md); padding: var(--ia-space-sm) 0; border-bottom: 1px solid var(--ia-border); }
+.q-row { margin-bottom: var(--ia-space-md); padding: var(--ia-space-sm); border: 1px solid var(--ia-glass-border); border-radius: var(--ia-radius-sm); background: rgba(255, 255, 255, 0.01); }
 .q-text { font-size: var(--ia-font-size-md); color: var(--ia-text); margin-bottom: var(--ia-space-sm); line-height: 1.5; }
-.q-slider { display: flex; gap: var(--ia-space-sm); }
+.q-slider { display: flex; flex-wrap: wrap; gap: var(--ia-space-sm); }
 .q-radio {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 0.15rem;
+  gap: 0.35rem;
   cursor: pointer;
-  padding: 0.35rem 0.7rem;
+  padding: 0.55rem 0.85rem;
   border-radius: var(--ia-radius-xs);
-  border: 1px solid var(--ia-border);
+  border: 1px solid var(--ia-glass-border);
   background: var(--ia-bg);
-  transition: all 0.2s;
+  transition: all var(--ia-transition-fast);
+  flex: 1 1 100px;
+  min-width: 100px;
 }
-.q-radio span { font-size: var(--ia-font-size-sm); color: var(--ia-text-secondary); }
-.q-radio input { accent-color: var(--ia-gold); }
-.q-radio:hover { border-color: var(--ia-border-strong); }
-.q-radio.picked { border-color: var(--ia-gold); background: var(--ia-gold-soft); color: var(--ia-gold); }
-.q-radio.picked span { color: var(--ia-gold); }
+.q-radio .score-num {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  font-weight: 700;
+  font-family: var(--ia-font-mono);
+  font-size: var(--ia-font-size-xs);
+  color: var(--ia-text-secondary);
+  transition: all var(--ia-transition-fast);
+}
+.q-radio .score-label { font-size: var(--ia-font-size-sm); color: var(--ia-text-secondary); }
+.q-radio input { position: absolute; opacity: 0; width: 0; height: 0; }
+.q-radio:hover { border-color: var(--ia-border-strong); background: var(--ia-surface-hover); }
+.q-radio:hover .score-num { background: rgba(255, 255, 255, 0.1); }
+.q-radio.picked { border-color: var(--ia-gold); background: var(--ia-gold-soft); color: var(--ia-gold); box-shadow: 0 0 14px rgba(240, 185, 11, 0.1); }
+.q-radio.picked .score-num { background: rgba(240, 185, 11, 0.2); color: var(--ia-gold); }
+.q-radio.picked .score-label { color: var(--ia-gold); }
 
-.result-panel { margin-top: var(--ia-space-md); }
+.result-panel { margin-top: var(--ia-space-md); border-left: 3px solid var(--ia-gold); }
 .result-green h3 { color: var(--ia-green); }
 .result-yellow h3 { color: var(--ia-gold); }
 .result-red h3 { color: var(--ia-red); }
 .risk-desc { font-size: var(--ia-font-size-md); color: var(--ia-text-secondary); margin: var(--ia-space-sm) 0; }
-.score-summary { display: flex; gap: var(--ia-space-md); margin-bottom: var(--ia-space-md); }
+.score-summary { display: flex; gap: var(--ia-space-md); margin-bottom: var(--ia-space-md); flex-wrap: wrap; }
 .notes-display { font-size: var(--ia-font-size-sm); color: var(--ia-text-secondary); margin-top: 0.3rem; }
 
-.history-list { display: flex; flex-direction: column; gap: 0.4rem; }
-.history-item { display: flex; align-items: center; gap: var(--ia-space-md); padding: 0.6rem 0.8rem; font-size: var(--ia-font-size-sm); }
+.history-list { display: flex; flex-direction: column; gap: 0.5rem; }
+.history-item { display: flex; align-items: center; gap: var(--ia-space-md); padding: 0.7rem 0.9rem; font-size: var(--ia-font-size-sm); transition: all var(--ia-transition-fast); }
+.history-item:hover { border-color: var(--ia-border-strong); box-shadow: var(--ia-shadow-sm); transform: translateY(-2px); }
 .h-time { color: var(--ia-text-tertiary); min-width: 140px; font-variant-numeric: tabular-nums; }
 .h-notes { color: var(--ia-text-secondary); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+@media (max-width: 640px) {
+  .q-radio { flex: 1 1 100%; }
+  .history-item { flex-direction: column; align-items: flex-start; gap: 0.25rem; }
+}
 </style>

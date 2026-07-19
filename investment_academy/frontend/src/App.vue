@@ -1,5 +1,5 @@
 <template>
-  <div id="app-root" :class="{ 'sidebar-collapsed': collapsed }">
+  <div id="app-root" :class="{ 'sidebar-collapsed': collapsed, 'sidebar-mobile-open': !collapsed && isMobile }" :style="rootStyle">
     <aside class="sidebar">
       <div class="sidebar-brand">
         <div class="brand-icon">
@@ -9,8 +9,8 @@
           投资学院
           <span>Investment Academy</span>
         </div>
-        <button class="sidebar-toggle" @click="collapsed = !collapsed" title="收起/展开">
-          <IAIcon name="menu" size="md" />
+        <button class="sidebar-toggle" @click="toggleSidebar" :title="collapsed ? '展开侧边栏' : '收起侧边栏'">
+          <IAIcon :name="collapsed ? 'chevron-right' : 'chevron-left'" size="md" />
         </button>
       </div>
 
@@ -88,36 +88,66 @@
       </nav>
 
       <div class="sidebar-footer">
-        <div class="api-badge" :class="apiOk ? 'ia-badge--green' : 'ia-badge--red'">
-          <IAIcon name="dot" size="xs" />
-          {{ apiOk ? 'API 已连接' : 'API 未连接' }}
-        </div>
+        <IATooltip :content="apiOk ? 'API 已连接' : 'API 未连接'" position="right">
+          <div class="api-badge" :class="apiOk ? 'ia-badge--green' : 'ia-badge--red'">
+            <IAIcon name="dot" size="xs" class="api-dot" />
+            <span class="api-badge-text">{{ apiOk ? 'API 已连接' : 'API 未连接' }}</span>
+          </div>
+        </IATooltip>
       </div>
     </aside>
 
+    <div class="mobile-overlay" @click="collapsed = true"></div>
+
     <main class="main-content">
-      <router-view />
+      <div class="mobile-header">
+        <button class="mobile-header__toggle" @click="toggleSidebar" title="菜单">
+          <IAIcon name="menu" size="md" />
+        </button>
+        <span class="mobile-header__title">投资学院</span>
+      </div>
+      <transition name="page" mode="out-in">
+        <router-view />
+      </transition>
     </main>
   </div>
 </template>
 
 <script>
-import { IAIcon } from './components/ui'
+import { IAIcon, IATooltip } from './components/ui'
 import { getPhases, getLabs } from './api/content'
 import { healthCheck } from './api/index'
 
 export default {
   name: 'App',
-  components: { IAIcon },
+  components: { IAIcon, IATooltip },
   data() {
+    const savedTheme = typeof localStorage !== 'undefined' ? localStorage.getItem('ia-bg-theme') : 'dark'
     return {
       phases: [],
       labs: [],
       apiOk: false,
       collapsed: false,
+      isMobile: false,
+      bgTheme: savedTheme || 'dark',
+      bgThemes: {
+        dark: '#08080C',
+        navy: '#0A0F1C',
+        graphite: '#121212',
+        plum: '#150C18',
+        ink: '#0C0A0F',
+      },
     }
   },
+  computed: {
+    rootStyle() {
+      return { '--ia-bg': this.bgThemes[this.bgTheme] || this.bgThemes.dark }
+    },
+  },
   async created() {
+    this.checkMobile()
+    window.addEventListener('resize', this.checkMobile)
+    window.addEventListener('ia-bg-theme', this.onBgTheme)
     try {
       await healthCheck()
       this.apiOk = true
@@ -132,7 +162,24 @@ export default {
       console.error('加载导航失败:', e)
     }
   },
+  beforeDestroy() {
+    window.removeEventListener('resize', this.checkMobile)
+    window.removeEventListener('ia-bg-theme', this.onBgTheme)
+  },
   methods: {
+    checkMobile() {
+      this.isMobile = window.innerWidth <= 768
+    },
+    toggleSidebar() {
+      this.collapsed = !this.collapsed
+    },
+    onBgTheme(e) {
+      const t = e.detail
+      if (this.bgThemes[t]) {
+        this.bgTheme = t
+        if (typeof localStorage !== 'undefined') localStorage.setItem('ia-bg-theme', t)
+      }
+    },
     formatPhaseLabel(id) {
       const map = {
         p1_basics: 'P1 股市基础',
@@ -162,8 +209,6 @@ export default {
   display: flex;
   min-height: 100vh;
   background: var(--ia-bg);
-  background-image: radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px);
-  background-size: 28px 28px;
 }
 
 /* Sidebar */
@@ -173,13 +218,16 @@ export default {
   height: 100vh;
   position: sticky;
   top: 0;
-  background: var(--ia-surface);
-  border-right: 1px solid var(--ia-border);
+  background: var(--ia-surface-glass);
+  border-right: 1px solid var(--ia-glass-border);
   display: flex;
   flex-direction: column;
   padding: 1.5rem 0;
   overflow-y: auto;
-  transition: width 0.25s ease, min-width 0.25s ease;
+  transition: width 0.25s ease, min-width 0.25s ease, transform 0.25s ease;
+  backdrop-filter: blur(var(--ia-glass-blur));
+  -webkit-backdrop-filter: blur(var(--ia-glass-blur));
+  z-index: 101;
 }
 
 .sidebar-brand {
@@ -202,6 +250,7 @@ export default {
   color: var(--ia-gold);
   border: 1px solid rgba(240, 185, 11, 0.15);
   flex-shrink: 0;
+  box-shadow: 0 0 12px rgba(240, 185, 11, 0.08);
 }
 
 .brand-text {
@@ -225,23 +274,32 @@ export default {
 }
 
 .sidebar-toggle {
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  border: 1px solid var(--ia-border);
-  background: transparent;
-  color: var(--ia-text-secondary);
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.10);
+  color: #ffffff;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  transition: all var(--ia-transition-fast);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(240, 185, 11, 0.08);
+  backdrop-filter: blur(4px);
 }
 
 .sidebar-toggle:hover {
-  color: var(--ia-gold);
+  color: #ffffff;
   border-color: var(--ia-gold);
   background: var(--ia-gold-soft);
+  box-shadow: 0 0 14px rgba(240, 185, 11, 0.35), 0 2px 8px rgba(0, 0, 0, 0.2);
+  transform: translateX(-1px);
+}
+
+.sidebar-toggle:active {
+  transform: scale(0.95);
 }
 
 .sidebar-nav {
@@ -275,20 +333,23 @@ export default {
   font-size: 0.85rem;
   color: var(--ia-text-secondary);
   text-decoration: none;
-  transition: all 0.2s;
+  transition: all var(--ia-transition-fast);
   white-space: nowrap;
   overflow: hidden;
+  border: 1px solid transparent;
 }
 
 .nav-item:hover {
-  background: var(--ia-surface-hover);
+  background: rgba(255, 255, 255, 0.04);
   color: var(--ia-text);
+  border-color: var(--ia-glass-border);
 }
 
 .nav-item--active {
   background: var(--ia-gold-soft);
   color: var(--ia-gold);
-  border: 1px solid rgba(240, 185, 11, 0.15);
+  border: 1px solid rgba(240, 185, 11, 0.18);
+  box-shadow: 0 0 12px rgba(240, 185, 11, 0.06);
 }
 
 .nav-label {
@@ -310,7 +371,9 @@ export default {
 
 .sidebar-footer {
   padding: 1rem 1.2rem;
-  border-top: 1px solid var(--ia-border);
+  border-top: 1px solid var(--ia-glass-border);
+  display: flex;
+  justify-content: center;
 }
 
 .api-badge {
@@ -319,28 +382,71 @@ export default {
   justify-content: center;
   gap: 0.4rem;
   font-size: 0.68rem;
-  padding: 0.4rem 0.6rem;
+  padding: 0.4rem 0.7rem;
   border-radius: 20px;
-  background: var(--ia-surface-elevated);
-  border: 1px solid var(--ia-border);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--ia-glass-border);
   color: var(--ia-text-secondary);
   white-space: nowrap;
+  transition: all var(--ia-transition-fast);
+  cursor: default;
 }
 
-.api-badge svg {
-  color: currentColor;
+.api-dot {
+  animation: ia-dot-pulse 2s infinite;
 }
 
 /* Main content */
 .main-content {
   flex: 1;
   min-width: 0;
+  position: relative;
+}
+
+.mobile-header {
+  display: none;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: var(--ia-surface-glass);
+  border-bottom: 1px solid var(--ia-glass-border);
+  backdrop-filter: blur(var(--ia-glass-blur));
+  -webkit-backdrop-filter: blur(var(--ia-glass-blur));
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.mobile-header__toggle {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--ia-radius-xs);
+  border: 1px solid var(--ia-glass-border);
+  background: transparent;
+  color: var(--ia-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--ia-transition-fast);
+}
+
+.mobile-header__toggle:hover {
+  border-color: var(--ia-gold);
+  color: var(--ia-gold);
+  background: var(--ia-gold-soft);
+}
+
+.mobile-header__title {
+  font-weight: 600;
+  color: var(--ia-text);
+  letter-spacing: 0.03em;
 }
 
 /* Collapsed sidebar state */
 .sidebar-collapsed .sidebar {
-  width: 72px;
-  min-width: 72px;
+  width: var(--ia-sidebar-collapsed-width);
+  min-width: var(--ia-sidebar-collapsed-width);
 }
 
 .sidebar-collapsed .brand-text,
@@ -348,7 +454,7 @@ export default {
 .sidebar-collapsed .nav-label,
 .sidebar-collapsed .nav-count,
 .sidebar-collapsed .nav-guide,
-.sidebar-collapsed .api-badge span {
+.sidebar-collapsed .api-badge-text {
   display: none;
 }
 
@@ -356,21 +462,40 @@ export default {
   margin: 0 auto;
 }
 
-.sidebar-collapsed .sidebar-toggle {
-  display: none;
-}
-
 .sidebar-collapsed .nav-item {
   justify-content: center;
+  padding: 0.65rem;
 }
 
 .sidebar-collapsed .api-badge {
   padding: 0.5rem;
+  border-radius: 50%;
 }
 
 .sidebar-collapsed .sidebar-brand {
   justify-content: center;
-  padding: 0;
+  padding: 0 0.6rem;
+  gap: 0.4rem;
+  flex-direction: column;
+}
+
+.sidebar-collapsed .sidebar-toggle {
+  width: 30px;
+  height: 30px;
+  margin: 0.4rem auto 0;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.10);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(240, 185, 11, 0.08);
+}
+
+.sidebar-collapsed .sidebar-footer {
+  padding: 1rem 0.6rem;
+}
+
+/* Mobile overlay */
+.mobile-overlay {
+  display: none;
 }
 
 /* Responsive */
@@ -378,28 +503,32 @@ export default {
   .sidebar {
     position: fixed;
     z-index: 100;
-    transform: translateX(0);
-  }
-  .sidebar-collapsed .sidebar {
     transform: translateX(-100%);
   }
-  #app-root:not(.sidebar-collapsed)::after {
-    content: '';
+  .sidebar-mobile-open .sidebar {
+    transform: translateX(0);
+  }
+  .sidebar-mobile-open .mobile-overlay {
+    display: block;
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(4px);
     z-index: 99;
   }
   .main-content {
-    padding-top: 0;
+    width: 100%;
+  }
+  .mobile-header {
+    display: flex;
   }
 }
 
 /* Scrollbar */
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: var(--ia-bg); }
-::-webkit-scrollbar-thumb { background: rgba(240, 185, 11, 0.2); border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(240, 185, 11, 0.35); }
+::-webkit-scrollbar-thumb { background: rgba(240, 185, 11, 0.25); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(240, 185, 11, 0.4); }
 
 /* Global typography overrides */
 h1, h2, h3, h4 {
@@ -414,6 +543,22 @@ p {
 }
 
 a { color: var(--ia-gold); text-decoration: none; }
+
+/* Page transitions */
+.page-enter-active,
+.page-leave-active {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.page-enter {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.page-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
+}
 
 /* View transitions */
 .fade-enter-active, .fade-leave-active { transition: opacity 0.2s; }

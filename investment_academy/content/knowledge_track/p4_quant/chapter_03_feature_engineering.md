@@ -35,12 +35,21 @@ SPAS 对每根 K 线生成一个 **FeatureVector**，包含 50+ 维特征：
 
 ```
 FeatureVector = {
-    body_ratio, close_pos, upper_shadow, lower_shadow,  # K线6维
+    # K线6维微观结构
+    body_ratio, close_pos, upper_shadow, lower_shadow,
     trend_bar, limit_status,
-    ema5_slope, ema20_slope,                             # 趋势特征
-    volume_ratio, turnover_anomaly,                       # 量价特征
-    h2_score, l2_score, fb_score,                         # 形态特征
-    sector_momentum, market_heat,                          # 板块特征
+
+    # 趋势特征
+    ema5_slope, ema20_slope,
+
+    # 量价特征
+    volume_ratio, turnover_anomaly,
+
+    # 形态特征
+    h2_score, l2_score, fb_score,
+
+    # 板块特征
+    sector_momentum, market_heat,
     ...
 }
 ```

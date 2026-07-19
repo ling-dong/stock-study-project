@@ -25,5 +25,5 @@ chapters:
       - { id: q1, type: single_choice, question: "完整交易系统有几层架构？", options: ["3层", "5层", "7层", "1层"], answer: 1, explanation: "5层=数据→预测→风控→心理→评估。每一层都不可或缺。" }
       - { id: q2, type: single_choice, question: "上午开盘后多久开始交易最合理？", options: ["立即", "观察30分钟后", "等2小时", "想到就买"], answer: 1, explanation: "开盘30分钟内价格受集合竞价和隔夜信息影响，波动大且方向不确定。等30分钟让市场稳定。" }
       - { id: q3, type: single_choice, question: "每几个月应该做一次系统层面的大复盘？", options: ["1个月", "3个月", "1年", "不需要"], answer: 1, explanation: "每3个月做一次系统大复盘：评估策略适应性、调整权重、检测过拟合。" }
-      - { id: q4, type: single_choice, question: "第一个月的实盘交易，仓位建议？", options: ["ALL-IN", "不超过总资金10%", "50%", "无所谓"], answer: 1, explanation: "阶段1先用小资金验证（≤10%），积累30+条日志后再考虑加仓。" }
+      - { id: q4, type: single_choice, question: "开始小资金实盘验证阶段，仓位建议？", options: ["ALL-IN", "不超过总资金10%", "50%", "无所谓"], answer: 1, explanation: "阶段2（第3-4个月）开始小资金实盘验证，仓位不超过总资金10%，积累30+条日志后再考虑加仓。" }
       - { id: q5, type: true_false, question: "一个完整的交易系统不会亏损", options: [], answer: false, explanation: "任何系统都会亏损。完整的系统=亏损在预期范围内且你能持续执行下去，而非不亏损。" }

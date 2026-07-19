@@ -173,16 +173,26 @@ export default {
   display: flex;
   gap: var(--ia-space-lg);
   flex-wrap: wrap;
+  padding: var(--ia-space-sm);
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: var(--ia-radius-xs);
 }
 
 .chart-section {
   margin-top: var(--ia-space-md);
+  background: var(--ia-surface-glass);
+  border: 1px solid var(--ia-glass-border);
+  border-radius: var(--ia-radius);
+  padding: var(--ia-space-md);
+  backdrop-filter: blur(var(--ia-glass-blur));
+  -webkit-backdrop-filter: blur(var(--ia-glass-blur));
+  box-shadow: var(--ia-shadow-sm);
 }
 
 .chart-info {
   font-size: var(--ia-font-size-xs);
   color: var(--ia-text-tertiary);
-  margin-top: 0.3rem;
+  margin-top: 0.5rem;
   text-align: right;
 }
 

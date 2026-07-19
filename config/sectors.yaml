@@ -86,10 +86,10 @@ sectors:
     analysis_level: "basic"
     related_sectors: ["801750"]
 
-  - sector_id: "801770"
+  - sector_id: "801771"
     name: "存储芯片"
     etf_code: "159559.SZ"
-    index_code: "801770.SI"
+    index_code: "801771.SI"
     constituents:
       - code: "002049.SZ"
         name: "紫光国微"

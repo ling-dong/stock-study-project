@@ -7,6 +7,26 @@
       :breadcrumbs="[{ label: '首页' }]"
     />
 
+    <div class="theme-picker">
+      <button class="theme-picker__btn" @click="themeOpen = !themeOpen" title="切换背景色">
+        <IAIcon name="palette" size="md" />
+      </button>
+      <transition name="fade">
+        <div v-if="themeOpen" class="theme-picker__panel">
+          <div
+            v-for="t in themes"
+            :key="t.key"
+            class="theme-option"
+            :class="{ active: currentTheme === t.key }"
+            @click="setTheme(t.key)"
+          >
+            <span class="theme-swatch" :style="{ background: t.color }"></span>
+            <span class="theme-label">{{ t.label }}</span>
+          </div>
+        </div>
+      </transition>
+    </div>
+
     <div class="ia-metric-grid">
       <IAMetricCard label="已完成章节" :value="progressStats.completed" unit="章" trend="up" />
       <IAMetricCard label="课程章节" :value="progressStats.total" unit="章" />
@@ -55,24 +75,35 @@
 </template>
 
 <script>
-import { IAPageHeader, IAMetricCard, IASectionTitle, IABadge } from '../components/ui'
+import { IAPageHeader, IAMetricCard, IASectionTitle, IABadge, IAIcon } from '../components/ui'
 import { getPhases, getLabs } from '../api/content'
 import { getProgress } from '../api/progress'
 import { getETFs } from '../api/market'
 
 export default {
   name: 'Home',
-  components: { IAPageHeader, IAMetricCard, IASectionTitle, IABadge },
+  components: { IAPageHeader, IAMetricCard, IASectionTitle, IABadge, IAIcon },
   data() {
     return {
       phases: [],
       labs: [],
       progressStats: { completed: 0, total: 34, pct: 0 },
       etfCount: 0,
+      themeOpen: false,
+      currentTheme: 'dark',
+      themes: [
+        { key: 'dark', label: '深邃黑', color: '#08080C' },
+        { key: 'navy', label: '暗夜蓝', color: '#0A0F1C' },
+        { key: 'graphite', label: '石墨灰', color: '#121212' },
+        { key: 'plum', label: '暗梅紫', color: '#150C18' },
+        { key: 'ink', label: '墨蓝黑', color: '#0C0A0F' },
+      ],
     }
   },
   async created() {
     try {
+      const saved = typeof localStorage !== 'undefined' ? localStorage.getItem('ia-bg-theme') : 'dark'
+      this.currentTheme = saved || 'dark'
       const [phasesRes, labsRes, progressRes, etfsRes] = await Promise.all([
         getPhases(), getLabs(), getProgress(), getETFs(),
       ])
@@ -89,6 +120,11 @@ export default {
     }
   },
   methods: {
+    setTheme(key) {
+      window.dispatchEvent(new CustomEvent('ia-bg-theme', { detail: key }))
+      this.currentTheme = key
+      this.themeOpen = false
+    },
     formatPhaseId(id) { return (id.match(/p(\d+)/) || [])[0]?.toUpperCase() || id },
     formatPhaseLabel(id) {
       const map = {
@@ -130,6 +166,89 @@ export default {
 <style scoped>
 .home {
   padding-top: var(--ia-space-md);
+  position: relative;
+}
+
+.theme-picker {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 200;
+}
+
+.theme-picker__btn {
+  width: 42px;
+  height: 42px;
+  border-radius: var(--ia-radius);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.10);
+  color: #ffffff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--ia-transition-fast);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(240, 185, 11, 0.08);
+  backdrop-filter: blur(4px);
+}
+
+.theme-picker__btn:hover {
+  border-color: var(--ia-gold);
+  color: var(--ia-gold);
+  background: var(--ia-gold-soft);
+  box-shadow: 0 0 16px rgba(240, 185, 11, 0.35), 0 2px 10px rgba(0, 0, 0, 0.2);
+  transform: translateY(-2px);
+}
+
+.theme-picker__btn:active {
+  transform: scale(0.95);
+}
+
+.theme-picker__panel {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  min-width: 150px;
+  padding: 0.6rem;
+  background: var(--ia-surface-elevated);
+  border: 1px solid var(--ia-border-strong);
+  border-radius: var(--ia-radius);
+  box-shadow: var(--ia-shadow-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.theme-option {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: var(--ia-radius-xs);
+  cursor: pointer;
+  transition: all var(--ia-transition-fast);
+}
+
+.theme-option:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.theme-option.active {
+  background: var(--ia-gold-soft);
+}
+
+.theme-swatch {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid var(--ia-glass-border);
+  flex-shrink: 0;
+}
+
+.theme-label {
+  font-size: var(--ia-font-size-sm);
+  color: var(--ia-text);
+  white-space: nowrap;
 }
 
 .card-grid {
@@ -139,22 +258,25 @@ export default {
 }
 
 .track-card {
-  background: var(--ia-surface);
-  border: 1px solid var(--ia-border);
+  background: var(--ia-surface-glass);
+  border: 1px solid var(--ia-glass-border);
   border-radius: var(--ia-radius);
   padding: var(--ia-space-lg);
   cursor: pointer;
-  transition: all 0.25s ease;
+  transition: all var(--ia-transition-base);
   text-decoration: none;
   display: flex;
   flex-direction: column;
   min-height: 160px;
+  backdrop-filter: blur(var(--ia-glass-blur));
+  -webkit-backdrop-filter: blur(var(--ia-glass-blur));
+  box-shadow: var(--ia-shadow-sm);
 }
 
 .track-card:hover {
   border-color: var(--ia-gold);
-  box-shadow: var(--ia-glow-gold);
-  transform: translateY(-3px);
+  box-shadow: var(--ia-shadow-gold);
+  transform: translateY(-4px);
 }
 
 .track-num {
@@ -164,6 +286,7 @@ export default {
   text-transform: uppercase;
   margin-bottom: var(--ia-space-sm);
   font-weight: 600;
+  text-shadow: 0 0 10px rgba(240, 185, 11, 0.15);
 }
 
 .track-name {
@@ -186,5 +309,11 @@ export default {
   gap: var(--ia-space-sm);
   align-items: center;
   flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+  .card-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

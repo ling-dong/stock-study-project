@@ -451,7 +451,7 @@ monitoring:
 
 ```bash
 # 1. 进入项目目录
-cd D:\stock_market
+cd <项目根目录>
 
 # 2. 创建虚拟环境（推荐）
 python -m venv .venv
@@ -664,7 +664,7 @@ python scripts/diagnose_power.py
 ## 附录：项目目录结构
 
 ```
-D:\stock_market\
+<项目根目录>\
 ├── config/
 │   ├── settings.yaml        # 全局配置（风控/模型/数据源/交易成本）
 │   └── sectors.yaml         # 板块配置（8个板块+ETF+成分股）

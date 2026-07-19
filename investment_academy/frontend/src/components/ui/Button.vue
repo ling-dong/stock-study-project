@@ -18,7 +18,7 @@ export default {
   components: { IAIcon },
   props: {
     variant: { type: String, default: 'primary' }, // primary, secondary, ghost, danger
-    size: { type: String, default: 'md' }, // sm, md
+    size: { type: String, default: 'md' }, // sm, md, lg
     pill: { type: Boolean, default: false },
     disabled: { type: Boolean, default: false },
     loading: { type: Boolean, default: false },

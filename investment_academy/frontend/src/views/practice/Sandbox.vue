@@ -265,7 +265,7 @@ export default {
         this.tradeStartDate = this.allBars[this.preStartCount]?.date || null
         this.updateBars()
       } catch (e) {
-        alert('初始化失败: ' + (e.response?.data?.detail || e.message))
+        this.$toast('初始化失败: ' + (e.response?.data?.detail || e.message), 'error')
       } finally {
         this.initLoading = false
       }
@@ -303,7 +303,7 @@ export default {
         const res = await sandboxAdvance(this.sessionId)
         await this.refreshState()
         if (res.data.is_done) { await this.loadPerformance() }
-      } catch (e) { alert('操作失败: ' + (e.response?.data?.detail || e.message)) }
+      } catch (e) { this.$toast('操作失败: ' + (e.response?.data?.detail || e.message), 'error') }
       finally { this.actionLoading = false }
     },
     setBuyRatio(ratio) {
@@ -315,11 +315,11 @@ export default {
     },
     openBuyModal() {
       if (this.buyShares <= 0 || this.buyShares % 100 !== 0) {
-        alert('A股以手为单位，买入必须是 100 的整数倍')
+        this.$toast('A股以手为单位，买入必须是 100 的整数倍', 'warning')
         return
       }
       if (this.buyShares * (this.currentBar?.close || 0) > this.state.cash) {
-        alert(`资金不足，可用 ${this.state.cash.toLocaleString()} 元`)
+        this.$toast(`资金不足，可用 ${this.state.cash.toLocaleString()} 元`, 'warning')
         return
       }
       this.showBuyModal = true
@@ -331,7 +331,7 @@ export default {
         const res = await sandboxBuy(this.sessionId, this.buyShares)
         this.trades.push(res.data.trade)
         await this.refreshState()
-      } catch (e) { alert('买入失败: ' + (e.response?.data?.detail || e.message)) }
+      } catch (e) { this.$toast('买入失败: ' + (e.response?.data?.detail || e.message), 'error') }
       finally { this.actionLoading = false }
     },
     async doSellAll() {
@@ -341,19 +341,19 @@ export default {
         this.trades.push(res.data.trade)
         await this.refreshState()
         if (this.state.isDone) { await this.loadPerformance() }
-      } catch (e) { alert('卖出失败: ' + (e.response?.data?.detail || e.message)) }
+      } catch (e) { this.$toast('卖出失败: ' + (e.response?.data?.detail || e.message), 'error') }
       finally { this.actionLoading = false }
     },
     async doSellPartial() {
-      if (this.sellShares <= 0) { alert('请输入要卖出的股数'); return }
-      if (this.sellShares > this.state.shares) { alert(`持仓不足，最多卖出 ${this.state.shares} 股`); return }
+      if (this.sellShares <= 0) { this.$toast('请输入要卖出的股数', 'warning'); return }
+      if (this.sellShares > this.state.shares) { this.$toast(`持仓不足，最多卖出 ${this.state.shares} 股`, 'warning'); return }
       this.actionLoading = true
       try {
         const res = await sandboxSell(this.sessionId, this.sellShares)
         this.trades.push(res.data.trade)
         await this.refreshState()
         if (this.state.isDone) { await this.loadPerformance() }
-      } catch (e) { alert('卖出失败: ' + (e.response?.data?.detail || e.message)) }
+      } catch (e) { this.$toast('卖出失败: ' + (e.response?.data?.detail || e.message), 'error') }
       finally { this.actionLoading = false }
     },
     async loadPerformance() {
@@ -398,6 +398,13 @@ export default {
   gap: var(--ia-space-md);
   margin: var(--ia-space-md) 0;
   flex-wrap: wrap;
+  padding: var(--ia-space-md);
+  background: var(--ia-surface-glass);
+  border: 1px solid var(--ia-glass-border);
+  border-radius: var(--ia-radius);
+  backdrop-filter: blur(var(--ia-glass-blur));
+  -webkit-backdrop-filter: blur(var(--ia-glass-blur));
+  box-shadow: var(--ia-shadow-sm);
 }
 
 .bar-item {
@@ -426,6 +433,13 @@ export default {
   align-items: center;
   margin: var(--ia-space-md) 0;
   flex-wrap: wrap;
+  padding: var(--ia-space-md);
+  background: var(--ia-surface-glass);
+  border: 1px solid var(--ia-glass-border);
+  border-radius: var(--ia-radius);
+  backdrop-filter: blur(var(--ia-glass-blur));
+  -webkit-backdrop-filter: blur(var(--ia-glass-blur));
+  box-shadow: var(--ia-shadow-sm);
 }
 
 .trade-btns {
@@ -445,11 +459,17 @@ export default {
   width: 80px;
   padding: 0.4rem;
   background: var(--ia-bg);
-  border: 1px solid var(--ia-border);
+  border: 1px solid var(--ia-glass-border);
   border-radius: var(--ia-radius-xs);
   color: var(--ia-text);
   font-size: 0.82rem;
   outline: none;
+  transition: border-color var(--ia-transition-fast), box-shadow var(--ia-transition-fast);
+}
+
+.shares-input:focus {
+  border-color: var(--ia-gold);
+  box-shadow: 0 0 0 2px rgba(240, 185, 11, 0.06);
 }
 
 .trade-table .row-buy td { color: var(--ia-red); }
@@ -465,17 +485,26 @@ export default {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 100;
+  padding: var(--ia-space-md);
 }
 
 .modal {
   max-width: 420px;
-  width: 90%;
+  width: 100%;
   padding: var(--ia-space-lg);
+  background: var(--ia-surface-glass);
+  border: 1px solid var(--ia-glass-border);
+  border-radius: var(--ia-radius-lg);
+  box-shadow: var(--ia-shadow-lg);
+  backdrop-filter: blur(var(--ia-glass-blur));
+  -webkit-backdrop-filter: blur(var(--ia-glass-blur));
 }
 
 .modal-actions {

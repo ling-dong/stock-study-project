@@ -12,7 +12,7 @@
 
 ## 2.2 SPAS 的 6 层硬约束风控
 
-SPAS 系统内建了 6 层防线，由 `constraints.py` 实现：
+SPAS 系统内建了 6 层防线，由 `constraints.py` 实现。这些阈值是 SPAS 的默认设计参数，你可以根据自己的风险承受能力调整，但调整前必须先用 Walk-Forward 回测验证。
 
 ### L1: 单日止损
 

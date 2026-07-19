@@ -141,7 +141,8 @@ export default {
   gap: var(--ia-space-md);
 }
 
-.sector-card { padding: var(--ia-space-md); }
+.sector-card { padding: var(--ia-space-md); background: var(--ia-surface-glass); border: 1px solid var(--ia-glass-border); border-radius: var(--ia-radius); box-shadow: var(--ia-shadow-sm); backdrop-filter: blur(var(--ia-glass-blur)); -webkit-backdrop-filter: blur(var(--ia-glass-blur)); transition: all var(--ia-transition-base); }
+.sector-card:hover { border-color: var(--ia-border-strong); box-shadow: var(--ia-shadow-md); transform: translateY(-2px); }
 .sector-header { display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.5rem; }
 .sector-id { font-size: var(--ia-font-size-xs); color: var(--ia-gold); font-family: var(--ia-font-mono); }
 .sector-name { font-size: var(--ia-font-size-md); color: var(--ia-text); font-weight: 500; }
@@ -155,7 +156,8 @@ export default {
   gap: var(--ia-space-md);
 }
 
-.factor-card { padding: var(--ia-space-md); }
+.factor-card { padding: var(--ia-space-md); background: var(--ia-surface-glass); border: 1px solid var(--ia-glass-border); border-radius: var(--ia-radius); box-shadow: var(--ia-shadow-sm); backdrop-filter: blur(var(--ia-glass-blur)); -webkit-backdrop-filter: blur(var(--ia-glass-blur)); transition: all var(--ia-transition-base); }
+.factor-card:hover { border-color: var(--ia-border-strong); box-shadow: var(--ia-shadow-md); transform: translateY(-2px); }
 .factor-hd { display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.4rem; }
 .factor-name { font-size: var(--ia-font-size-lg); color: var(--ia-text); font-weight: 500; }
 .factor-formula { font-size: var(--ia-font-size-sm); color: var(--ia-text-secondary); margin-bottom: 0.3rem; }
@@ -167,11 +169,15 @@ export default {
   gap: var(--ia-space-md);
 }
 .param-item {
-  background: var(--ia-bg);
-  border: 1px solid var(--ia-border);
+  background: var(--ia-surface-glass);
+  border: 1px solid var(--ia-glass-border);
   border-radius: var(--ia-radius-xs);
   padding: 0.6rem 0.8rem;
+  backdrop-filter: blur(var(--ia-glass-blur));
+  -webkit-backdrop-filter: blur(var(--ia-glass-blur));
+  transition: all var(--ia-transition-fast);
 }
+.param-item:hover { border-color: var(--ia-border-strong); box-shadow: var(--ia-shadow-sm); }
 .param-name { display: block; font-size: var(--ia-font-size-xs); color: var(--ia-text-tertiary); letter-spacing: 0.05em; }
 .param-value { display: block; font-size: 1.1rem; color: var(--ia-gold); font-weight: 300; margin-top: 0.15rem; font-variant-numeric: tabular-nums; }
 
@@ -180,7 +186,8 @@ export default {
   grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
   gap: var(--ia-space-md);
 }
-.setup-card { padding: var(--ia-space-md); }
+.setup-card { padding: var(--ia-space-md); background: var(--ia-surface-glass); border: 1px solid var(--ia-glass-border); border-radius: var(--ia-radius); box-shadow: var(--ia-shadow-sm); backdrop-filter: blur(var(--ia-glass-blur)); -webkit-backdrop-filter: blur(var(--ia-glass-blur)); transition: all var(--ia-transition-base); }
+.setup-card:hover { border-color: var(--ia-border-strong); box-shadow: var(--ia-shadow-md); transform: translateY(-2px); }
 .setup-hd { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.4rem; flex-wrap: wrap; }
 .setup-name { font-size: var(--ia-font-size-lg); color: var(--ia-gold); font-weight: 500; }
 .setup-chinese { font-size: var(--ia-font-size-md); color: var(--ia-text); }
@@ -189,7 +196,8 @@ export default {
 .setup-factors { display: flex; gap: 0.3rem; flex-wrap: wrap; }
 
 .risk-list { display: flex; flex-direction: column; gap: 0.5rem; }
-.risk-card { display: flex; align-items: center; gap: 1rem; padding: 0.8rem 1rem; font-size: var(--ia-font-size-md); }
+.risk-card { display: flex; align-items: center; gap: 1rem; padding: 0.8rem 1rem; font-size: var(--ia-font-size-md); background: var(--ia-surface-glass); border: 1px solid var(--ia-glass-border); border-radius: var(--ia-radius-xs); backdrop-filter: blur(var(--ia-glass-blur)); -webkit-backdrop-filter: blur(var(--ia-glass-blur)); transition: all var(--ia-transition-fast); }
+.risk-card:hover { border-color: var(--ia-border-strong); box-shadow: var(--ia-shadow-sm); }
 .risk-threshold { color: var(--ia-red); font-weight: 500; }
 .risk-action { color: var(--ia-text-secondary); }
 

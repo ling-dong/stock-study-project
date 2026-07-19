@@ -192,7 +192,7 @@ export default {
           emotional_state: '', lesson_learned: '', mistake_flag: false,
         }
         await this.loadJournal()
-      } catch (e) { alert('保存失败: ' + (e.response?.data?.detail || e.message)) }
+      } catch (e) { this.$toast('保存失败: ' + (e.response?.data?.detail || e.message), 'error') }
       finally { this.saving = false }
     },
     async loadJournal() {
@@ -219,12 +219,18 @@ export default {
         this.showEditModal = false
         this.editingId = null
         await this.loadJournal()
-      } catch (e) { alert('保存失败: ' + (e.response?.data?.detail || e.message)) }
+      } catch (e) { this.$toast('保存失败: ' + (e.response?.data?.detail || e.message), 'error') }
       finally { this.saving = false }
     },
     async deleteEntry(id) {
-      if (!confirm('确定删除这条交易日志吗？此操作不可撤销。')) return
-      try { await deleteJournalEntry(id); await this.loadJournal() } catch (e) { alert('删除失败: ' + (e.response?.data?.detail || e.message)) }
+      const ok = await this.$confirm({
+        title: '删除交易日志',
+        message: '确定删除这条交易日志吗？此操作不可撤销。',
+        confirmText: '删除',
+        cancelText: '取消',
+      })
+      if (!ok) return
+      try { await deleteJournalEntry(id); await this.loadJournal(); this.$toast('已删除', 'success') } catch (e) { this.$toast('删除失败: ' + (e.response?.data?.detail || e.message), 'error') }
     },
   },
 }
@@ -249,12 +255,16 @@ export default {
   font-size: var(--ia-font-size-sm);
   color: var(--ia-text-secondary);
   flex-wrap: wrap;
+  background: var(--ia-surface-glass);
+  border: 1px solid var(--ia-glass-border);
+  border-radius: var(--ia-radius);
+  backdrop-filter: blur(var(--ia-glass-blur));
+  -webkit-backdrop-filter: blur(var(--ia-glass-blur));
 }
 
-.summary-bar .sep { color: var(--ia-border-strong); }
-
-.journal-mistake { border-color: rgba(246, 70, 93, 0.25); }
-.journal-item { padding: var(--ia-space-md); margin-bottom: var(--ia-space-sm); }
+.journal-mistake { border-color: rgba(246, 70, 93, 0.25) !important; }
+.journal-item { padding: var(--ia-space-md); margin-bottom: var(--ia-space-sm); transition: all var(--ia-transition-base); }
+.journal-item:hover { border-color: var(--ia-border-strong); box-shadow: var(--ia-shadow-md); transform: translateY(-2px); }
 .ji-header { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.5rem; flex-wrap: wrap; }
 .ji-date { font-size: var(--ia-font-size-sm); color: var(--ia-text-tertiary); }
 .ji-pnl { font-size: var(--ia-font-size-md); font-weight: 500; font-variant-numeric: tabular-nums; }
@@ -264,27 +274,30 @@ export default {
 .ji-actions { display: flex; gap: 0.3rem; margin-left: auto; }
 .btn-icon {
   background: transparent;
-  border: 1px solid var(--ia-border);
-  border-radius: 4px;
-  padding: 0.25rem;
+  border: 1px solid var(--ia-glass-border);
+  border-radius: var(--ia-radius-xs);
+  padding: 0.35rem;
   cursor: pointer;
   color: var(--ia-text-secondary);
-  transition: all 0.2s;
+  transition: all var(--ia-transition-fast);
   display: flex;
   align-items: center;
 }
-.btn-icon:hover { background: var(--ia-gold-soft); border-color: var(--ia-gold); color: var(--ia-gold); }
-.btn-icon--danger:hover { background: var(--ia-red-soft); border-color: var(--ia-red); color: var(--ia-red); }
+.btn-icon:hover { background: var(--ia-gold-soft); border-color: var(--ia-gold); color: var(--ia-gold); box-shadow: 0 0 10px rgba(240, 185, 11, 0.08); }
+.btn-icon--danger:hover { background: var(--ia-red-soft); border-color: var(--ia-red); color: var(--ia-red); box-shadow: 0 0 10px rgba(246, 70, 93, 0.08); }
 
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 100;
+  padding: var(--ia-space-md);
 }
-.modal { max-width: 520px; width: 90%; max-height: 90vh; overflow-y: auto; padding: var(--ia-space-lg); }
+.modal { max-width: 560px; width: 100%; max-height: 90vh; overflow-y: auto; padding: var(--ia-space-lg); background: var(--ia-surface-glass); border: 1px solid var(--ia-glass-border); box-shadow: var(--ia-shadow-lg); border-radius: var(--ia-radius-lg); }
 .modal-actions { display: flex; justify-content: flex-end; gap: var(--ia-space-sm); margin-top: var(--ia-space-md); }
 </style>

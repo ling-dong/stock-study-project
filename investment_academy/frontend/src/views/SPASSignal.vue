@@ -145,7 +145,7 @@ export default {
       }
     } catch (e) {
       console.error(e)
-      alert('加载 ETF 列表失败: ' + e.message)
+      this.$toast('加载 ETF 列表失败: ' + e.message, 'error')
     }
   },
   methods: {
@@ -156,7 +156,7 @@ export default {
         const r = await getSPASSignal(this.selectedETF)
         this.result = r.data
       } catch (e) {
-        alert('分析失败: ' + (e.response?.data?.detail || e.message))
+        this.$toast('分析失败: ' + (e.response?.data?.detail || e.message), 'error')
       } finally {
         this.loading = false
       }
@@ -175,8 +175,8 @@ export default {
 }
 
 .hero-card {
-  background: var(--ia-surface);
-  border: 1px solid var(--ia-border);
+  background: var(--ia-surface-glass);
+  border: 1px solid var(--ia-glass-border);
   border-radius: var(--ia-radius);
   padding: var(--ia-space-lg);
   text-align: center;
@@ -187,7 +187,10 @@ export default {
   min-height: 200px;
   position: relative;
   overflow: hidden;
-  transition: border-color 0.3s;
+  transition: all var(--ia-transition-base);
+  backdrop-filter: blur(var(--ia-glass-blur));
+  -webkit-backdrop-filter: blur(var(--ia-glass-blur));
+  box-shadow: var(--ia-shadow-sm);
 }
 
 .hero-card::before {
@@ -201,13 +204,15 @@ export default {
   transition: background 0.3s;
 }
 
-.hero-card.bullish::before { background: var(--ia-green); }
-.hero-card.bearish::before { background: var(--ia-red); }
-.hero-card.position::before { background: var(--ia-blue); }
-.hero-card.success::before { background: var(--ia-green); }
+.hero-card.bullish::before { background: var(--ia-green); box-shadow: 0 0 10px var(--ia-green); }
+.hero-card.bearish::before { background: var(--ia-red); box-shadow: 0 0 10px var(--ia-red); }
+.hero-card.position::before { background: var(--ia-blue); box-shadow: 0 0 10px var(--ia-blue); }
+.hero-card.success::before { background: var(--ia-green); box-shadow: 0 0 10px var(--ia-green); }
 
 .hero-card:hover {
   border-color: var(--ia-border-strong);
+  box-shadow: var(--ia-shadow-md);
+  transform: translateY(-3px);
 }
 
 .hero-label {
@@ -253,14 +258,15 @@ export default {
   border-radius: var(--ia-radius-xs);
   min-width: 72px;
   min-height: 48px;
-  background: rgba(255, 255, 255, 0.015);
-  border: 1px solid transparent;
-  transition: all 0.2s;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--ia-glass-border);
+  transition: all var(--ia-transition-fast);
 }
 
 .tech-item:hover {
-  border-color: var(--ia-border);
-  background: rgba(255, 255, 255, 0.03);
+  border-color: var(--ia-border-strong);
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: var(--ia-shadow-sm);
 }
 
 .tech-label {

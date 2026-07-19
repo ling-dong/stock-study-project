@@ -20,7 +20,7 @@
 ### 1.3 启动方式（推荐）
 
 ```bash
-cd D:\stock_market
+cd <项目根目录>
 python scripts/start_all.py
 ```
 
@@ -39,15 +39,15 @@ python scripts/start_all.py
 
 ```bash
 # 终端 1: SPAS Core API
-cd D:\stock_market
+cd <项目根目录>
 python scripts/start.py serve
 
 # 终端 2: Academy Backend
-cd D:\stock_market\investment_academy
+cd <项目根目录>\investment_academy
 uvicorn backend.main:app --host 127.0.0.1 --port 8001
 
 # 终端 3: Vue2 Frontend
-cd D:\stock_market\investment_academy\frontend
+cd <项目根目录>\investment_academy\frontend
 npm install
 npm run serve
 ```
@@ -55,7 +55,7 @@ npm run serve
 **一键关闭：**
 
 ```bash
-cd D:\stock_market
+cd <项目根目录>
 python scripts/stop_all.py
 ```
 
@@ -68,7 +68,7 @@ python scripts/stop_all.py
 ### 2.1 与 SPAS 的关系
 
 ```
-D:\stock_market
+<项目根目录>
 │
 ├── SPAS 核心系统 (src/)
 │   ├── 数据/特征/预测/风控/回测
@@ -498,16 +498,16 @@ GET /api/spas/system/status          → SPAS 系统状态
 
 ```bash
 # 一键启动全栈（SPAS API + Academy 后端 + Vue 前端）
-cd D:\stock_market
+cd <项目根目录>
 python scripts/start_all.py
 # Windows 用户也可直接双击 start_all.bat
 
 # 仅启动 Academy 后端（手动）
-cd D:\stock_market\investment_academy
+cd <项目根目录>\investment_academy
 uvicorn backend.main:app --host 127.0.0.1 --port 8001
 
 # 启动 Vue2 前端（手动）
-cd D:\stock_market\investment_academy\frontend
+cd <项目根目录>\investment_academy\frontend
 npm run serve
 
 # 一键关闭
